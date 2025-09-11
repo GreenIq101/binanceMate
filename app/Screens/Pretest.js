@@ -1,3 +1,4 @@
+
 import { StyleSheet, TextInput, TouchableOpacity, View, Text, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -5,7 +6,7 @@ import { widthPercentageToDP as w } from 'react-native-responsive-screen';
 import axios from 'axios';
 import moment from 'moment';
 
-const Search = () => {
+const Pretest = () => {
   const [name, setName] = useState('memeusdt');
   const [price, setPrice] = useState('');
   const [cap, setCap] = useState('');
@@ -19,12 +20,23 @@ const Search = () => {
   const [wsCap, setWsCap] = useState(null);
   const [wsHistorical, setWsHistorical] = useState(null);
   const [timeFrame, setTimeFrame] = useState('1h'); // Default time frame
+  const [predictedPrice, setPredictedPrice] = useState(null); // State to hold predicted price
+  const [bollingerUpper, setBollingerUpper] = useState(null);
+  const [bollingerLower, setBollingerLower] = useState(null);
 
   const searchData = () => {
     getPriceData();
     getCapData();
     getHistoricalData();
   };
+
+  const calculateStandardDeviation = (data) => {
+    const mean = data.reduce((sum, value) => sum + value, 0) / data.length;
+    const squaredDiffs = data.map(value => (value - mean) ** 2);
+    const variance = squaredDiffs.reduce((sum, value) => sum + value, 0) / data.length;
+    return Math.sqrt(variance);
+  };
+  
 
   const getPriceData = () => {
     if (wsPrice) {
@@ -74,7 +86,7 @@ const Search = () => {
       setCap(cap_price);
 
       const circulatingSupply = 1000000; // Replace with actual value if known
-      const marketCap = (cap_price * circulatingSupply).toFixed(2);
+      const marketCap = (cap_price * circulatingSupply).toFixed(10);
       setMarketCap(marketCap);
 
       if (!cap_price) {
@@ -157,14 +169,29 @@ const Search = () => {
         setSma(sma);
       }
 
+      if (closePrices.length < smaPeriod) {
+        console.log('Not enough closing prices for SMA calculation.');
+        return;
+    }
+
       // Exponential Moving Average (EMA)
       const emaPeriod = 14;
       const k = 2 / (emaPeriod + 1);
       const ema = closePrices.reduce((acc, val, index) => {
         if (index === 0) return val; // Initial EMA is the first closing price
         return ((val - acc) * k) + acc;
-      }, 0).toFixed(2);
+      }, 0).toFixed(10);
       setEma(ema);
+
+      // Calculate Standard Deviation
+    const standardDeviation = calculateStandardDeviation(closePrices.slice(-smaPeriod)); // Last 14 prices
+
+    
+    // Calculate Bollinger Bands
+    const upperBand = (parseFloat(sma) + (2 * standardDeviation)).toFixed(2);
+    const lowerBand = (parseFloat(sma) - (2 * standardDeviation)).toFixed(2);
+    setBollingerUpper(upperBand);
+    setBollingerLower(lowerBand);
 
       // Relative Strength Index (RSI)
       const rsiPeriod = 14;
@@ -187,6 +214,17 @@ const Search = () => {
     } catch (error) {
       console.error('Error fetching indicators:', error);
     }
+  };
+
+  // Function to predict the price for the next hour
+  const predictNextPrice = () => {
+    const latestClosingPrice = parseFloat(price); // Live price
+    const smaValue = parseFloat(sma); // SMA
+    const emaValue = parseFloat(ema); // EMA
+
+    // Calculate predicted price
+    const predicted = (0.5 * latestClosingPrice) + (0.3 * smaValue) + (0.2 * emaValue);
+    setPredictedPrice(predicted.toFixed(10)); // Set predicted price state
   };
 
   return (
@@ -217,50 +255,42 @@ const Search = () => {
             </View>
             <View style={styles.element}>
               <Text style={styles.elementText}>Supply</Text>
-              <Text style={[styles.elementValue, { color }]}>{cap}</Text>
+              <Text style={styles.elementValue}>{marketCap}</Text>
             </View>
             <View style={styles.element}>
               <Text style={styles.elementText}>Market Cap</Text>
-              <Text style={[styles.elementValue, { color }]}>{marketCap}</Text>
+              <Text style={styles.elementValue}>{marketCap}</Text>
             </View>
-          </View>
-          <View style={styles.indicatorsContainer}>
-            <Text style={styles.indicatorLabel}>SMA: {sma}</Text>
-            <Text style={styles.indicatorLabel}>EMA: {ema}</Text>
-            <Text style={styles.indicatorLabel}>RSI: {rsi}</Text>
+            <View style={styles.element}>
+              <Text style={styles.elementText}>SMA</Text>
+              <Text style={styles.elementValue}>{sma}</Text>
+            </View>
+            <View style={styles.element}>
+              <Text style={styles.elementText}>EMA</Text>
+              <Text style={styles.elementValue}>{ema}</Text>
+            </View>
+            <View style={styles.element}>
+              <Text style={styles.elementText}>RSI</Text>
+              <Text style={styles.elementValue}>{rsi}</Text>
+            </View>
+            
+            <View style={styles.element}>
+  <Text style={styles.elementText}>Bollinger Upper Band</Text>
+  <Text style={styles.elementValue}>{bollingerUpper}</Text>
+</View>
+<View style={styles.element}>
+  <Text style={styles.elementText}>Bollinger Lower Band</Text>
+  <Text style={styles.elementValue}>{bollingerLower}</Text>
+</View>
           </View>
         </View>
 
-        {/* Time Frame Buttons */}
-        <View style={styles.timeFrameContainer}>
-          {['1m', '5m', '15m', '1h', '4h', '1d'].map((timeFrameOption) => (
-            <TouchableOpacity
-              key={timeFrameOption}
-              style={[styles.timeFrameButton, timeFrame === timeFrameOption && styles.activeTimeFrameButton]}
-              onPress={() => setTimeFrame(timeFrameOption)}
-            >
-              <Text style={styles.timeFrameButtonText}>{timeFrameOption}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.historyContainer}>
-          <Text style={styles.historyLabel}>Recent Historical Data</Text>
-          {historicalData.length > 0 ? (
-            historicalData.map((data, index) => (
-              <View key={index} style={styles.historyItem}>
-                <Text style={styles.historyText}>{moment(data.time).format('MMMM Do YYYY, h:mm:ss a')}</Text>
-                <Text style={styles.historyText}>Open: {data.open}</Text>
-                <Text style={styles.historyText}>High: {data.high}</Text>
-                <Text style={styles.historyText}>Low: {data.low}</Text>
-                <Text style={styles.historyText}>Close: {data.close}</Text>
-                <Text style={styles.historyText}>Volume: {data.volume}</Text>
-                <Text style={styles.historyText}>Change: {data.change.toFixed(2)}</Text>
-                <Text style={styles.historyText}>Change Percent: {data.changePercent.toFixed(2)}%</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noHistoryText}>No historical data available.</Text>
+        <View style={styles.predictContainer}>
+          <TouchableOpacity style={styles.predictButton} onPress={predictNextPrice}>
+            <Text style={styles.predictButtonText}>Predict Price</Text>
+          </TouchableOpacity>
+          {predictedPrice && (
+            <Text style={styles.predictedPriceText}>Predicted Price: {predictedPrice}</Text>
           )}
         </View>
       </View>
@@ -271,124 +301,89 @@ const Search = () => {
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#1E1E1E',
+    paddingBottom: 20,
   },
   mainContainer: {
-    borderRadius: 10,
-    backgroundColor: '#2C2C2C',
+    flex: 1,
     padding: 20,
-    marginBottom: 20,
+    backgroundColor: '#121212',
   },
   searchBar: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#333',
-    borderRadius: 5,
-    padding: 10,
+    marginBottom: 20,
   },
   searchIcon: {
     marginRight: 10,
   },
   searchInp: {
     flex: 1,
-    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
     color: 'whitesmoke',
   },
   searchBtn: {
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
+    backgroundColor: '#FF5722',
     padding: 10,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchBtnText: {
     color: 'white',
   },
   resultContainer: {
-    marginTop: 20,
-  },
-  nameCard: {
-    padding: 15,
-    backgroundColor: '#444',
+    backgroundColor: '#1E1E1E',
     borderRadius: 5,
+    padding: 15,
     marginBottom: 20,
   },
+  nameCard: {
+    marginBottom: 15,
+  },
   pairLabel: {
-    color: 'whitesmoke',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
+    color: 'whitesmoke',
   },
   elementsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   element: {
-    flex: 1,
-    marginHorizontal: 5,
+    width: '48%',
+    marginBottom: 10,
     padding: 10,
-    backgroundColor: '#555',
     borderRadius: 5,
-    alignItems: 'center',
+    backgroundColor: '#333',
   },
   elementText: {
-    color: 'whitesmoke',
+    color: 'gray',
   },
   elementValue: {
-    color: 'whitesmoke',
-    fontSize: 16,
     fontWeight: 'bold',
-  },
-  indicatorsContainer: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#555',
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  indicatorLabel: {
     color: 'whitesmoke',
-    fontSize: 16,
   },
-  timeFrameContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  timeFrameButton: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
+  predictContainer: {
     alignItems: 'center',
-    marginHorizontal: 5,
   },
-  activeTimeFrameButton: {
-    backgroundColor: '#0056b3',
+  predictButton: {
+    backgroundColor: '#FF5722',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
   },
-  timeFrameButtonText: {
+  predictButtonText: {
     color: 'white',
   },
-  historyContainer: {
-    marginTop: 20,
-  },
-  historyLabel: {
-    color: 'whitesmoke',
+  predictedPriceText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  historyItem: {
-    padding: 10,
-    backgroundColor: '#444',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  historyText: {
     color: 'whitesmoke',
-  },
-  noHistoryText: {
-    color: 'whitesmoke',
-    textAlign: 'center',
   },
 });
 
-export default Search;
+export default Pretest;
+
+

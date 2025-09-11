@@ -1,26 +1,23 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from '@firebase/auth';
+// firebase.js
+import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage, ref } from 'firebase/storage'; // Import getStorage and ref
+import { getAuth } from 'firebase/auth'; // Add this line
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your Firebase configuration (replace with actual credentials)
 const firebaseConfig = {
-  apiKey: "AIzaSyB5kNczOeKwp52ZlcjsSM9mWXHp-YRyMuc",
-  authDomain: "nloop-d674e.firebaseapp.com",
-  projectId: "nloop-d674e",
-  storageBucket: "nloop-d674e.appspot.com",
-  messagingSenderId: "64907955295",
-  appId: "1:64907955295:web:3bd2736773fb74a19edfea",
-  measurementId: "G-376488B2VH"
+  apiKey: "AIzaSyBP7yVKtOa7EQtq3OxgWCytSC_naDVHhCw",
+  authDomain: "binance-mate.firebaseapp.com",
+  projectId: "binance-mate",
+  storageBucket: "binance-mate.appspot.com",
+  messagingSenderId: "870359730172",
+  appId: "1:870359730172:web:2e9878fb813166c5f01479"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const firestore = getFirestore(app);
-const storage = getStorage(app); // Initialize Firebase Storage
-const storageRef = ref(storage); // Get a reference to the root of the default Firebase Storage bucket
 
-export { app, auth, firestore, storageRef }; // Export the initialized storageRef
+// Initialize Firestore
+const db = getFirestore(app);
+const auth = getAuth(app); // Make sure to initialize auth
+
+export { db, auth };

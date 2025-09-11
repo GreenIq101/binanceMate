@@ -48,5 +48,10 @@
   "devDependencies": {
     "@babel/core": "^7.24.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GreenIq101/binanceMate.git"
+  },
+  "author": "GreenIq101",
   "private": true
 }

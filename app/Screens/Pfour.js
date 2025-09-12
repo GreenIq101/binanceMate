@@ -96,7 +96,6 @@ const [accuracyReturn, setAccuracyReturn] = useState('');
     const nextIndex = (currentIndex + 1) % coinPairs.length;
     setCurrentIndex(nextIndex);
     setName(coinPairs[nextIndex]);
-    console.log("Array Items :  " + coinPairs.length.toString() );
   };
 
   const handlePrevious = () => {

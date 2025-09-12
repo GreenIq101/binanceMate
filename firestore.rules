@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users can only read and write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User profiles - users can only access their own profile
+    match /profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User predictions - users can only access their own predictions
+    match /predictions/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Sub-collections under predictions
+      match /trades/{tradeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /history/{historyId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // User portfolios - users can only access their own portfolio data
+    match /portfolios/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Sub-collections under portfolios
+      match /holdings/{holdingId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /transactions/{transactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // User watchlists - users can only access their own watchlists
+    match /watchlists/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Sub-collections under watchlists
+      match /items/{itemId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // User alerts - users can only access their own alerts
+    match /alerts/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Sub-collections under alerts
+      match /price_alerts/{alertId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /notifications/{notificationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // User settings - users can only access their own settings
+    match /settings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User analytics/statistics - users can only access their own data
+    match /analytics/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Sub-collections under analytics
+      match /performance/{performanceId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /statistics/{statId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Market data - read-only for all authenticated users (if you have shared market data)
+    match /market_data/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only admin can write market data
+    }
+    
+    // Public data that all authenticated users can read (like crypto prices, news, etc.)
+    match /public/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only admin can write public data
+    }
+    
+    // Helper function to validate user data structure
+    function isValidUserData() {
+      return request.resource.data.keys().hasAll(['createdAt', 'updatedAt']) &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp;
+    }
+    
+    // Helper function to validate prediction data
+    function isValidPrediction() {
+      return request.resource.data.keys().hasAll(['symbol', 'prediction', 'confidence', 'createdAt']) &&
+             request.resource.data.symbol is string &&
+             request.resource.data.prediction is string &&
+             request.resource.data.confidence is number &&
+             request.resource.data.confidence >= 0 &&
+             request.resource.data.confidence <= 100;
+    }
+    
+    // Enhanced rules with validation for specific collections
+    match /predictions/{userId}/trades/{tradeId} {
+      allow read, write: if request.auth != null && 
+                         request.auth.uid == userId &&
+                         (resource == null || isValidPrediction());
+    }
+    
+    match /portfolios/{userId}/holdings/{holdingId} {
+      allow read, write: if request.auth != null && 
+                         request.auth.uid == userId &&
+                         (resource == null || 
+                          (request.resource.data.keys().hasAll(['symbol', 'quantity', 'averagePrice']) &&
+                           request.resource.data.quantity is number &&
+                           request.resource.data.averagePrice is number));
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

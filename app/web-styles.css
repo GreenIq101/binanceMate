@@ -1,0 +1,60 @@
+/* Web-specific styles to prevent UI disappearing issues */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+}
+
+#root {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Prevent viewport changes on mobile keyboards */
+@media screen and (max-width: 768px) {
+  body {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  #root {
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Input focus styles */
+input:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+/* Prevent zoom on input focus for iOS */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  font-size: 16px !important;
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+}
+
+/* Ensure containers maintain their size */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Prevent layout shifts */
+* {
+  box-sizing: border-box;
+}

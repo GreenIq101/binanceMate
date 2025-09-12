@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Platform, Animated, ScrollView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Alert, Platform, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../Firebase/fireConfig';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import iOSColors from './Colors';
-import WebSafeView from './WebSafeView';
+import WebOptimizedInput from './WebOptimizedInput';
+import GoogleLoginButton from './GoogleLoginButton';
 
 const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -37,15 +38,7 @@ const LoginForm = () => {
             }),
         ]).start();
 
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log('User is logged in:', user);
-                // Navigate to home screen after successful login
-                navigation.navigate('Navigation');
-            }
-        });
-
-        return () => unsubscribe();
+        // Navigation is handled by App.js auth state listener
     }, [navigation]);
 
     // Loading animation effect
@@ -112,18 +105,11 @@ const LoginForm = () => {
     };
 
     return (
-        <WebSafeView style={styles.container}>
+        <View style={styles.container}>
             <LinearGradient
                 colors={iOSColors.gradients.background}
                 style={styles.background}
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContainer}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                    style={styles.scrollView}
-                    nestedScrollEnabled={true}
-                >
                 <Animated.View
                     style={[
                         styles.formContainer,
@@ -148,56 +134,24 @@ const LoginForm = () => {
 
                     {/* Input Fields */}
                     <View style={styles.inputContainer}>
-                        <View style={styles.inputWrapper}>
-                            <MaterialCommunityIcons
-                                name="email"
-                                size={20}
-                                color={iOSColors.text.tertiary}
-                                style={styles.inputIcon}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Email address"
-                                placeholderTextColor={iOSColors.text.tertiary}
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                autoCorrect={false}
-                                blurOnSubmit={false}
-                                returnKeyType="next"
-                            />
-                        </View>
+                        <WebOptimizedInput
+                            placeholder="Email address"
+                            value={email}
+                            onChangeText={setEmail}
+                            keyboardType="email-address"
+                            iconName="email"
+                            returnKeyType="next"
+                        />
 
-                        <View style={styles.inputWrapper}>
-                            <MaterialCommunityIcons
-                                name="lock"
-                                size={20}
-                                color={iOSColors.text.tertiary}
-                                style={styles.inputIcon}
-                            />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Password"
-                                placeholderTextColor={iOSColors.text.tertiary}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={!showPassword}
-                                autoCapitalize="none"
-                                blurOnSubmit={false}
-                                returnKeyType="done"
-                            />
-                            <TouchableOpacity
-                                onPress={() => setShowPassword(!showPassword)}
-                                style={styles.eyeIcon}
-                            >
-                                <MaterialCommunityIcons
-                                    name={showPassword ? "eye-off" : "eye"}
-                                    size={20}
-                                    color={iOSColors.text.tertiary}
-                                />
-                            </TouchableOpacity>
-                        </View>
+                        <WebOptimizedInput
+                            placeholder="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry={true}
+                            iconName="lock"
+                            showPasswordToggle={true}
+                            returnKeyType="done"
+                        />
                     </View>
 
                     {/* Login Button */}
@@ -265,6 +219,16 @@ const LoginForm = () => {
                         </TouchableOpacity>
                     </View>
 
+                    {/* Google Login Button */}
+                    <View style={styles.googleButtonContainer}>
+                        <View style={styles.dividerContainer}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>or</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+                        <GoogleLoginButton />
+                    </View>
+
                     {/* Footer */}
                     <View style={styles.footer}>
                         <Text style={styles.footerText}>
@@ -278,9 +242,8 @@ const LoginForm = () => {
                         </Text>
                     </View>
                 </Animated.View>
-                </ScrollView>
             </LinearGradient>
-        </WebSafeView>
+        </View>
     );
 };
 
@@ -289,29 +252,16 @@ const styles = StyleSheet.create({
         flex: 1,
         ...(Platform.OS === 'web' && {
             minHeight: '100vh',
-            height: 'auto',
+            overflow: 'hidden',
         }),
     },
     background: {
         flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
         paddingHorizontal: 20,
         ...(Platform.OS === 'web' && {
             minHeight: '100vh',
-        }),
-    },
-    scrollView: {
-        flex: 1,
-        ...(Platform.OS === 'web' && {
-            height: 'auto',
-        }),
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: Platform.OS === 'web' ? '100vh' : '100%',
-        ...(Platform.OS === 'web' && {
-            paddingBottom: 100, // Extra padding for web keyboard
         }),
     },
     formContainer: {
@@ -364,44 +314,24 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         marginBottom: 30,
-    },
-    inputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: iOSColors.background.tertiary,
-        borderRadius: 12,
-        marginBottom: 16,
-        paddingHorizontal: 16,
-        height: 56,
-        borderWidth: 1,
-        borderColor: iOSColors.border.light,
-    },
-    inputIcon: {
-        marginRight: 12,
-    },
-    input: {
-        flex: 1,
-        fontSize: 16,
-        color: iOSColors.text.primary,
-        paddingVertical: 0,
-    },
-    eyeIcon: {
-        padding: 4,
+        width: '100%',
     },
     buttonContainer: {
         marginBottom: 30,
     },
     loginButton: {
-        borderRadius: 14,
+        borderRadius: 16,
         overflow: 'hidden',
         shadowColor: iOSColors.button.primary,
         shadowOffset: {
             width: 0,
-            height: 6,
+            height: 8,
         },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 10,
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+        elevation: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 215, 0, 0.1)',
     },
     loginButtonDisabled: {
         opacity: 0.6,
@@ -418,6 +348,26 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: iOSColors.text.primary,
         marginRight: 8,
+    },
+    googleButtonContainer: {
+        marginBottom: 20,
+        width: '100%',
+    },
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: iOSColors.border.light,
+    },
+    dividerText: {
+        marginHorizontal: 16,
+        fontSize: 14,
+        color: iOSColors.text.tertiary,
+        fontWeight: '500',
     },
     footer: {
         alignItems: 'center',

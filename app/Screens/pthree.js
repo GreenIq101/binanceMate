@@ -116,8 +116,6 @@ const pthree = () => {
         close: item[4],
       }));
       calculateIndicators(data);
-      console.log(timeFrame);
-      console.log(priceChange); // This will log the priceChange after the state updates
     } catch (error) {
       console.error("Error fetching historical data:", error);
     }

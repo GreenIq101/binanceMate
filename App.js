@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, StatusBar } from 'react-native';
+import { StyleSheet, StatusBar, Platform } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -17,6 +17,42 @@ export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
+        // Inject CSS for web platforms
+        if (Platform.OS === 'web') {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = './web-styles.css';
+            document.head.appendChild(link);
+
+            // Also add inline styles as fallback
+            const style = document.createElement('style');
+            style.textContent = `
+                body {
+                    margin: 0;
+                    padding: 0;
+                    overflow-x: hidden;
+                    min-height: 100vh;
+                    position: relative;
+                }
+                #root {
+                    min-height: 100vh;
+                    position: relative;
+                    overflow-x: hidden;
+                }
+                input:focus {
+                    outline: none !important;
+                    border: none !important;
+                }
+                input[type="text"], input[type="email"], input[type="password"] {
+                    font-size: 16px !important;
+                    -webkit-appearance: none;
+                    -webkit-border-radius: 0;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 setIsLoggedIn(true);
@@ -68,21 +104,11 @@ export default function App() {
                     }}
                 >
                     {isLoggedIn ? (
-                        <>
-                            <Stack.Screen
-                                options={{ headerShown: false }}
-                                name="Navigation"
-                                component={Nav}
-                            />
-                            <Stack.Screen
-                                options={{
-                                    headerShown: false,
-                                    title: 'Home'
-                                }}
-                                name="Home"
-                                component={Home}
-                            />
-                        </>
+                        <Stack.Screen
+                            options={{ headerShown: false }}
+                            name="Navigation"
+                            component={Nav}
+                        />
                     ) : (
                         <Stack.Screen
                             options={{ headerShown: false }}

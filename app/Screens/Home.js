@@ -28,17 +28,17 @@ const Home = () => {
   const [marketLoading, setMarketLoading] = useState(true);
 
   useEffect(() => {
-    // Start entrance animation
+    // Start entrance animation with improved performance
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
-        useNativeDriver: false,
+        duration: 600,
+        useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 800,
-        useNativeDriver: false,
+        duration: 500,
+        useNativeDriver: true,
       }),
     ]).start();
 
@@ -537,11 +537,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: iOSColors.text.primary,
     marginBottom: 2,
+    textShadowColor: 'rgba(255, 215, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   headerSubtitle: {
     fontSize: 14,
     color: iOSColors.text.secondary,
     fontWeight: '500',
+    opacity: 0.9,
   },
   settingsButton: {
     width: 44,
@@ -555,13 +559,15 @@ const styles = StyleSheet.create({
     marginBottom: h('3%'),
   },
   portfolioGradient: {
-    borderRadius: 16,
+    borderRadius: 20,
     padding: w('5%'),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.1)',
   },
   portfolioHeader: {
     flexDirection: 'row',
@@ -616,20 +622,24 @@ const styles = StyleSheet.create({
   marketGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
   },
   marketCard: {
     width: w('28%'),
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.05)',
   },
   marketGradient: {
-    padding: w('3%'),
+    padding: w('4%'),
     alignItems: 'center',
+    minHeight: h('12%'),
   },
   coinSymbol: {
     fontSize: 14,
@@ -664,13 +674,15 @@ const styles = StyleSheet.create({
   quickActionButton: {
     width: w('45%'),
     marginBottom: h('2%'),
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.05)',
   },
   quickActionGradient: {
     padding: w('5%'),

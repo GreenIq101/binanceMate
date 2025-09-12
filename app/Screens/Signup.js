@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, Animated, ScrollView } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Platform, Animated, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../Firebase/fireConfig';
 import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import iOSColors from '../Commponents/Colors';
+import WebSafeView from '../Commponents/WebSafeView';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
@@ -37,7 +38,7 @@ const Signup = () => {
 
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                navigation.navigate('Home');
+                navigation.navigate('Navigation');
             }
         });
 
@@ -93,14 +94,17 @@ const Signup = () => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <LinearGradient
-                    colors={iOSColors.gradients.background}
-                    style={styles.background}
+        <WebSafeView style={styles.container}>
+            <LinearGradient
+                colors={iOSColors.gradients.background}
+                style={styles.background}
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    style={styles.scrollView}
+                    nestedScrollEnabled={true}
                 >
                     <Animated.View
                         style={[
@@ -142,6 +146,8 @@ const Signup = () => {
                                     keyboardType="email-address"
                                     autoCapitalize="none"
                                     autoCorrect={false}
+                                    blurOnSubmit={false}
+                                    returnKeyType="next"
                                 />
                             </View>
 
@@ -160,6 +166,8 @@ const Signup = () => {
                                     onChangeText={setPassword}
                                     secureTextEntry={!showPassword}
                                     autoCapitalize="none"
+                                    blurOnSubmit={false}
+                                    returnKeyType="next"
                                 />
                                 <TouchableOpacity
                                     onPress={() => setShowPassword(!showPassword)}
@@ -188,6 +196,8 @@ const Signup = () => {
                                     onChangeText={setConfirmPassword}
                                     secureTextEntry={!showConfirmPassword}
                                     autoCapitalize="none"
+                                    blurOnSubmit={false}
+                                    returnKeyType="done"
                                 />
                                 <TouchableOpacity
                                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -247,25 +257,42 @@ const Signup = () => {
                             </Text>
                         </View>
                     </Animated.View>
+                    </ScrollView>
                 </LinearGradient>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            </WebSafeView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    scrollContainer: {
-        flexGrow: 1,
+        ...(Platform.OS === 'web' && {
+            minHeight: '100vh',
+            height: 'auto',
+        }),
     },
     background: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 40,
+        ...(Platform.OS === 'web' && {
+            minHeight: '100vh',
+        }),
+    },
+    scrollView: {
+        flex: 1,
+        ...(Platform.OS === 'web' && {
+            height: 'auto',
+        }),
+    },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: Platform.OS === 'web' ? '100vh' : '100%',
+        ...(Platform.OS === 'web' && {
+            paddingBottom: 100, // Extra padding for web keyboard
+        }),
     },
     formContainer: {
         width: '100%',

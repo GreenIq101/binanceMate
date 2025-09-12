@@ -1,58 +1,58 @@
 const iOSColors = {
-  // Yellow and Black Theme Colors
+  // Background Colors - Dark but breathable
   background: {
-    primary: '#000000',      // Pure black background
-    secondary: '#1a1a1a',     // Dark gray for cards/containers
-    tertiary: '#2a2a2a',      // Slightly lighter gray
-    accent: '#333333',       // Accent background
+    primary: '#0d0d0d',      // Deep black (slightly softened)
+    secondary: '#1c1c1e',    // Modern dark gray for cards
+    tertiary: '#2c2c2e',     // Lighter gray for separation
+    accent: '#3a3a3c',       // Accent background
   },
 
-  // Text Colors - Yellow theme
+  // Text Colors - Softer yellow + crisp neutrals
   text: {
-    primary: '#FFD700',      // Bright yellow for primary text
-    secondary: '#FFA500',    // Orange for secondary text
-    tertiary: '#888888',     // Medium gray for tertiary text
-    accent: '#FFD700',       // Yellow for accent text
+    primary: '#FFE066',      // Softer golden yellow (easy on eyes)
+    secondary: '#FFB84D',    // Warm amber for secondary text
+    tertiary: '#A1A1AA',     // Neutral gray for muted text
+    accent: '#FFFFFF',       // White for high contrast cases
   },
 
-  // Button Colors - Yellow and Black theme
+  // Button Colors - High contrast and accessible
   button: {
-    primary: '#FFD700',      // Bright yellow for primary actions
-    secondary: '#333333',    // Dark gray
-    success: '#FFA500',      // Orange for success
-    danger: '#FF4500',       // Red-orange for danger
-    warning: '#FF8C00',      // Dark orange for warnings
+    primary: '#FFE066',      // Golden yellow for main actions
+    secondary: '#2c2c2e',    // Subtle gray buttons
+    success: '#34C759',      // Modern green success (iOS style)
+    danger: '#FF3B30',       // Bright red danger
+    warning: '#FF9500',      // Orange warning
   },
 
-  // Gradients for glossy effects - Yellow theme
+  // Gradients - Modern soft blends
   gradients: {
-    primary: ['#FFD700', '#FFA500'],
-    success: ['#FFA500', '#FF8C00'],
-    background: ['#000000', '#1a1a1a'],
-    card: ['#2a2a2a', '#1a1a1a'],
-    warning: ['#FF8C00', '#FF4500'],
-    danger: ['#FF4500', '#CC3300'],
-    secondary: ['#1a1a1a', '#2a2a2a'],
-    tertiary: ['#333333', '#2a2a2a'],
+    primary: ['#FFE066', '#FFB84D'],
+    success: ['#34C759', '#248A3D'],
+    background: ['#0d0d0d', '#1c1c1e'],
+    card: ['#2c2c2e', '#1c1c1e'],
+    warning: ['#FFB84D', '#FF9500'],
+    danger: ['#FF5E57', '#CC1C13'],
+    secondary: ['#1c1c1e', '#2c2c2e'],
+    tertiary: ['#3a3a3c', '#2c2c2e'],
   },
 
-  // Border and Shadow Colors
+  // Border and Shadows - Subtle but visible
   border: {
-    light: '#FFD700',        // Yellow border
-    dark: '#FFA500',         // Orange border
+    light: '#FFE066',        // Soft golden border
+    dark: '#3a3a3c',         // Dark neutral border
   },
 
-  // Status Colors - Yellow theme
+  // Status Colors - Fresh, readable
   status: {
-    bullish: '#FFD700',      // Yellow for bullish
-    bearish: '#FF4500',      // Red-orange for bearish
-    neutral: '#FF8C00',      // Orange for neutral
+    bullish: '#34C759',      // Green bullish
+    bearish: '#FF3B30',      // Red bearish
+    neutral: '#FFB84D',      // Warm amber neutral
   },
 
-  // Legacy colors for backward compatibility
-  o: "#FFD700",  // Yellow
-  b: "#FFA500",  // Orange
-  r: "#FF4500",  // Red-orange
+  // Legacy colors (updated to match new scheme)
+  o: "#FFE066",  // Golden yellow
+  b: "#FFB84D",  // Amber
+  r: "#FF3B30",  // Red
 };
 
 export default iOSColors;

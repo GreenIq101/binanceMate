@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Platform, Animated, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../Firebase/fireConfig';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import iOSColors from './Colors';
+import WebSafeView from './WebSafeView';
 
 const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -27,23 +28,25 @@ const LoginForm = () => {
             Animated.timing(fadeAnim, {
                 toValue: 1,
                 duration: 800,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
             Animated.timing(slideAnim, {
                 toValue: 0,
                 duration: 600,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
         ]).start();
 
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log('User is logged in:', user);
+                // Navigate to home screen after successful login
+                navigation.navigate('Navigation');
             }
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [navigation]);
 
     // Loading animation effect
     useEffect(() => {
@@ -53,17 +56,17 @@ const LoginForm = () => {
                     Animated.timing(loadingAnim1, {
                         toValue: 1,
                         duration: 300,
-                        useNativeDriver: false,
+                        useNativeDriver: true,
                     }),
                     Animated.timing(loadingAnim2, {
                         toValue: 1,
                         duration: 300,
-                        useNativeDriver: false,
+                        useNativeDriver: true,
                     }),
                     Animated.timing(loadingAnim3, {
                         toValue: 1,
                         duration: 300,
-                        useNativeDriver: false,
+                        useNativeDriver: true,
                     }),
                 ]).start(() => {
                     // Reset and repeat
@@ -109,14 +112,18 @@ const LoginForm = () => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
+        <WebSafeView style={styles.container}>
             <LinearGradient
                 colors={iOSColors.gradients.background}
                 style={styles.background}
             >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    style={styles.scrollView}
+                    nestedScrollEnabled={true}
+                >
                 <Animated.View
                     style={[
                         styles.formContainer,
@@ -157,6 +164,8 @@ const LoginForm = () => {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 autoCorrect={false}
+                                blurOnSubmit={false}
+                                returnKeyType="next"
                             />
                         </View>
 
@@ -175,6 +184,8 @@ const LoginForm = () => {
                                 onChangeText={setPassword}
                                 secureTextEntry={!showPassword}
                                 autoCapitalize="none"
+                                blurOnSubmit={false}
+                                returnKeyType="done"
                             />
                             <TouchableOpacity
                                 onPress={() => setShowPassword(!showPassword)}
@@ -267,20 +278,41 @@ const LoginForm = () => {
                         </Text>
                     </View>
                 </Animated.View>
+                </ScrollView>
             </LinearGradient>
-        </KeyboardAvoidingView>
+        </WebSafeView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        ...(Platform.OS === 'web' && {
+            minHeight: '100vh',
+            height: 'auto',
+        }),
     },
     background: {
         flex: 1,
+        paddingHorizontal: 20,
+        ...(Platform.OS === 'web' && {
+            minHeight: '100vh',
+        }),
+    },
+    scrollView: {
+        flex: 1,
+        ...(Platform.OS === 'web' && {
+            height: 'auto',
+        }),
+    },
+    scrollContainer: {
+        flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 20,
+        minHeight: Platform.OS === 'web' ? '100vh' : '100%',
+        ...(Platform.OS === 'web' && {
+            paddingBottom: 100, // Extra padding for web keyboard
+        }),
     },
     formContainer: {
         width: '100%',

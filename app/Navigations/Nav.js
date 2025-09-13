@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import iOSColors from '../Commponents/Colors';
 
-import DataDisplay from '../Commponents/DataDisplay';
+import Analysis from '../Screens/Analysis';
 import Home from '../Screens/Home';
 import Portfolio from '../Screens/Portfolio';
 import Watchlist from '../Screens/Watchlist';
@@ -77,6 +77,9 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             } else if (route.name === 'Pfour') {
               iconName = 'brain';
               displayLabel = 'AI Predict';
+            } else if (route.name === 'Analysis') {
+              iconName = 'chart-bar';
+              displayLabel = 'Analysis';
             } else if (route.name === 'Settings') {
               iconName = 'cog';
               displayLabel = 'Settings';
@@ -168,6 +171,13 @@ const Nav = () => {
         component={Pfour}
         options={{
           tabBarLabel: 'AI Predict',
+        }}
+      />
+      <Tab.Screen
+        name="Analysis"
+        component={Analysis}
+        options={{
+          tabBarLabel: 'Analysis',
         }}
       />
       <Tab.Screen

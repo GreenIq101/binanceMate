@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, Button, ScrollView, Dimensions } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, Button, Dimensions } from 'react-native';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../Firebase/fireConfig';
 import iOSColors from './Colors';
@@ -158,10 +158,10 @@ const DataDisplay = () => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Order Metrics</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollContainer}>
+        <View style={styles.scrollContainer}>
           <View style={styles.metricContainer}>
             <Text style={styles.metricText}>Total Orders: {orderMetrics.totalOrders}</Text>
             <Text style={styles.metricText}>90% Accuracy: {orderMetrics.accuracy90}</Text>
@@ -171,43 +171,53 @@ const DataDisplay = () => {
             <Text style={styles.metricText}>Saved Orders: {orderMetrics.totalSaved}</Text>
             <Text style={styles.metricText}>Unsaved Orders: {orderMetrics.totalUnsaved}</Text>
           </View>
-        </ScrollView>
-      </View>
-      
-      <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>Saved Predictions</Text>
+        </View>
       </View>
 
       <FlatList
-        data={savedData}
-        renderItem={({ item, index }) => renderCard({ item, index, dataList: savedData, setDataList: setSavedData })}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.cardList}
+        data={[{ type: 'saved' }, { type: 'unsaved' }]}
+        keyExtractor={(item) => item.type}
+        renderItem={({ item }) => (
+          <View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.headerText}>
+                {item.type === 'saved' ? 'Saved Predictions' : 'Unsaved Predictions'}
+              </Text>
+            </View>
+            <FlatList
+              data={item.type === 'saved' ? savedData : unsavedData}
+              renderItem={({ item: cardItem, index }) =>
+                renderCard({
+                  item: cardItem,
+                  index,
+                  dataList: item.type === 'saved' ? savedData : unsavedData,
+                  setDataList: item.type === 'saved' ? setSavedData : setUnsavedData,
+                })
+              }
+              keyExtractor={(cardItem) => cardItem.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.cardList}
+              contentContainerStyle={{ minWidth: width * 0.8, flexGrow: 1, minHeight: 220 }}
+              ListEmptyComponent={<Text style={{ color: '#888', textAlign: 'center', padding: 20 }}>No {item.type === 'saved' ? 'saved' : 'unsaved'} predictions.</Text>}
+            />
+          </View>
+        )}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 30 }}
       />
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>Unsaved Predictions</Text>
-      </View>
-
-      <FlatList
-        data={unsavedData}
-        renderItem={({ item, index }) => renderCard({ item, index, dataList: unsavedData, setDataList: setUnsavedData })}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.cardList}
-      />
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 10,
+    paddingTop: 20,
+    paddingBottom: 30,
     backgroundColor: iOSColors.background.primary,
+    minHeight: '100%',
   },
   scrollContainer: {
     height: 60,
@@ -217,14 +227,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: iOSColors.background.secondary,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+  minHeight: 100,
   },
   headerText: {
     fontSize: 24,
@@ -262,14 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: iOSColors.background.secondary,
     borderRadius: 16,
     marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 10,
+  minHeight: 260,
     borderWidth: 1,
     borderColor: iOSColors.border.light,
   },

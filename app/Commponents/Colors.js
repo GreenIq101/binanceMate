@@ -1,58 +1,60 @@
+
 const iOSColors = {
-  // Background Colors - Dark but breathable
+  // Background Colors - Crypto dark theme
   background: {
-    primary: '#0d0d0d',      // Deep black (slightly softened)
-    secondary: '#1c1c1e',    // Modern dark gray for cards
-    tertiary: '#2c2c2e',     // Lighter gray for separation
-    accent: '#3a3a3c',       // Accent background
+    primary: '#101622',      // Deep blue-black (crypto dark)
+    secondary: '#181F2A',    // Card dark blue
+    tertiary: '#232B3B',     // Slightly lighter for separation
+    accent: '#1B2232',       // Accent background
   },
 
-  // Text Colors - Improved accessibility and reduced eye strain
+  // Text Colors - High contrast for dark
   text: {
-    primary: '#F5F5F7',      // Soft white for primary text (better contrast)
-    secondary: '#D1D1D6',    // Light gray for secondary text
-    tertiary: '#8E8E93',     // Medium gray for muted text
-    accent: '#FFFFFF',       // Pure white for high contrast cases
+    primary: '#F8FAFC',      // Bright white for primary text
+    secondary: '#AEB8C4',    // Cool gray for secondary text
+    tertiary: '#5C6A82',     // Muted blue-gray for hints
+    accent: '#FFD700',       // Gold accent for highlights
+    onPrimary: '#101622',    // For text on gold buttons
   },
 
-  // Button Colors - Improved accessibility and visual appeal
+  // Button Colors - Crypto accent
   button: {
-    primary: '#FFD700',      // Rich gold for main actions (less bright)
-    secondary: '#2c2c2e',    // Subtle gray buttons
-    success: '#30D158',      // Modern green success (iOS style)
-    danger: '#FF453A',       // Accessible red danger
-    warning: '#FF9F0A',      // Accessible orange warning
+    primary: '#FFD700',      // Gold for main actions
+    secondary: '#232B3B',    // Card blue for secondary
+    success: '#16C784',      // Crypto green (bullish)
+    danger: '#EA3943',       // Crypto red (bearish)
+    warning: '#FFB92A',      // Orange warning
   },
 
-  // Gradients - Subtle and accessible blends
+  // Gradients - Crypto style
   gradients: {
-    primary: ['#FFD700', '#FFA500'],
-    success: ['#30D158', '#28A745'],
-    background: ['#0d0d0d', '#1a1a1a'],
-    card: ['#2c2c2e', '#252526'],
-    warning: ['#FF9F0A', '#E8890B'],
-    danger: ['#FF453A', '#D63027'],
-    secondary: ['#1a1a1a', '#2c2c2e'],
-    tertiary: ['#3a3a3c', '#2c2c2e'],
+    primary: ['#FFD700', '#FFB92A'],
+    success: ['#16C784', '#0EAD69'],
+    background: ['#101622', '#181F2A'],
+    card: ['#232B3B', '#181F2A'],
+    warning: ['#FFB92A', '#FF8C00'],
+    danger: ['#EA3943', '#B71C1C'],
+    secondary: ['#181F2A', '#232B3B'],
+    tertiary: ['#1B2232', '#232B3B'],
   },
 
-  // Border and Shadows - Subtle but visible
+  // Border Colors
   border: {
-    light: '#FFE066',        // Soft golden border
-    dark: '#3a3a3c',         // Dark neutral border
+    light: '#FFD700',        // Gold border
+    dark: '#232B3B',         // Card border
   },
 
-  // Status Colors - Fresh, readable
+  // Status Colors - Crypto
   status: {
-    bullish: '#34C759',      // Green bullish
-    bearish: '#FF3B30',      // Red bearish
-    neutral: '#FFB84D',      // Warm amber neutral
+    bullish: '#16C784',      // Green bullish
+    bearish: '#EA3943',      // Red bearish
+    neutral: '#FFB92A',      // Orange neutral
   },
 
   // Legacy colors (updated to match new scheme)
-  o: "#FFE066",  // Golden yellow
-  b: "#FFB84D",  // Amber
-  r: "#FF3B30",  // Red
+  o: "#FFD700",  // Gold
+  b: "#FFB92A",  // Orange
+  r: "#EA3943",  // Red
 };
 
 export default iOSColors;

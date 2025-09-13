@@ -7,6 +7,7 @@ import iOSColors from '../Commponents/Colors';
 
 import Login from '../Screens/Login';
 import Signup from '../Screens/Signup';
+import Landing from '../Screens/Landing';
 
 const Tab = createBottomTabNavigator();
 
@@ -87,8 +88,9 @@ const EnteryNav = () => {
         tabBarStyle: { display: 'none' },
       }}
     >
-      <Tab.Screen name="Login" component={Login} />
-      <Tab.Screen name="Signup" component={Signup} />
+  <Tab.Screen name="Landing" component={Landing} options={{ tabBarLabel: 'Home' }} />
+  <Tab.Screen name="Login" component={Login} />
+  <Tab.Screen name="Signup" component={Signup} />
     </Tab.Navigator>
   );
 };

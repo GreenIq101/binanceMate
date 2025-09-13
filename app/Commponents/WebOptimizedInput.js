@@ -88,11 +88,6 @@ const styles = StyleSheet.create({
   inputWrapperFocused: {
     borderColor: iOSColors.button.primary,
     borderWidth: 2,
-    shadowColor: iOSColors.button.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   inputIcon: {
     marginRight: 12,

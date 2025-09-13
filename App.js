@@ -7,6 +7,7 @@ import 'react-native-gesture-handler';
 import Nav from './app/Navigations/Nav';
 import Home from './app/Screens/Home';
 import EnteryNav from './app/Navigations/EnteryNav';
+import Landing from './app/Screens/Landing';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './app/Firebase/fireConfig';
 import iOSColors from './app/Commponents/Colors';
@@ -110,11 +111,18 @@ export default function App() {
                             component={Nav}
                         />
                     ) : (
-                        <Stack.Screen
-                            options={{ headerShown: false }}
-                            name="EnteryNav"
-                            component={EnteryNav}
-                        />
+                        <>
+                            <Stack.Screen
+                                options={{ headerShown: false }}
+                                name="Landing"
+                                component={Landing}
+                            />
+                            <Stack.Screen
+                                options={{ headerShown: false }}
+                                name="EnteryNav"
+                                component={EnteryNav}
+                            />
+                        </>
                     )}
                 </Stack.Navigator>
             </NavigationContainer>

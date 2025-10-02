@@ -11,6 +11,7 @@ import Landing from './app/Screens/Landing';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './app/Firebase/fireConfig';
 import iOSColors from './app/Commponents/Colors';
+import ErrorBoundary from './app/Commponents/ErrorBoundary';
 
 const Stack = createStackNavigator();
 
@@ -66,67 +67,69 @@ export default function App() {
     }, []);
 
     return (
-        <PaperProvider theme={paperTheme}>
-            <StatusBar
-                barStyle="light-content"
-                backgroundColor={iOSColors.background.primary}
-                translucent={false}
-            />
-            <NavigationContainer
-                theme={{
-                    dark: true,
-                    colors: {
-                        primary: iOSColors.button.primary,
-                        background: iOSColors.background.primary,
-                        card: iOSColors.background.secondary,
-                        text: iOSColors.text.primary,
-                        border: iOSColors.border.light,
-                        notification: iOSColors.button.danger,
-                    },
-                }}
-            >
-                <Stack.Navigator
-                    screenOptions={{
-                        headerStyle: {
-                            backgroundColor: iOSColors.background.secondary,
-                            borderBottomColor: iOSColors.border.light,
-                            borderBottomWidth: 0.5,
-                            shadowColor: 'transparent',
-                            elevation: 0,
-                        },
-                        headerTintColor: iOSColors.text.primary,
-                        headerTitleStyle: {
-                            fontWeight: '600',
-                            fontSize: 17,
-                        },
-                        cardStyle: {
-                            backgroundColor: iOSColors.background.primary,
+        <ErrorBoundary>
+            <PaperProvider theme={paperTheme}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor={iOSColors.background.primary}
+                    translucent={false}
+                />
+                <NavigationContainer
+                    theme={{
+                        dark: true,
+                        colors: {
+                            primary: iOSColors.button.primary,
+                            background: iOSColors.background.primary,
+                            card: iOSColors.background.secondary,
+                            text: iOSColors.text.primary,
+                            border: iOSColors.border.light,
+                            notification: iOSColors.button.danger,
                         },
                     }}
                 >
-                    {isLoggedIn ? (
-                        <Stack.Screen
-                            options={{ headerShown: false }}
-                            name="Navigation"
-                            component={Nav}
-                        />
-                    ) : (
-                        <>
+                    <Stack.Navigator
+                        screenOptions={{
+                            headerStyle: {
+                                backgroundColor: iOSColors.background.secondary,
+                                borderBottomColor: iOSColors.border.light,
+                                borderBottomWidth: 0.5,
+                                shadowColor: 'transparent',
+                                elevation: 0,
+                            },
+                            headerTintColor: iOSColors.text.primary,
+                            headerTitleStyle: {
+                                fontWeight: '600',
+                                fontSize: 17,
+                            },
+                            cardStyle: {
+                                backgroundColor: iOSColors.background.primary,
+                            },
+                        }}
+                    >
+                        {isLoggedIn ? (
                             <Stack.Screen
                                 options={{ headerShown: false }}
-                                name="Landing"
-                                component={Landing}
+                                name="Navigation"
+                                component={Nav}
                             />
-                            <Stack.Screen
-                                options={{ headerShown: false }}
-                                name="EnteryNav"
-                                component={EnteryNav}
-                            />
-                        </>
-                    )}
-                </Stack.Navigator>
-            </NavigationContainer>
-        </PaperProvider>
+                        ) : (
+                            <>
+                                <Stack.Screen
+                                    options={{ headerShown: false }}
+                                    name="Landing"
+                                    component={Landing}
+                                />
+                                <Stack.Screen
+                                    options={{ headerShown: false }}
+                                    name="EnteryNav"
+                                    component={EnteryNav}
+                                />
+                            </>
+                        )}
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </PaperProvider>
+        </ErrorBoundary>
     );
 }
 

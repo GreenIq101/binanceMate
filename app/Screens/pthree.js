@@ -2,11 +2,12 @@ import { StyleSheet, TextInput, TouchableOpacity, View, Text, ScrollView } from 
 import React, { useState, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { widthPercentageToDP as w } from 'react-native-responsive-screen';
+import { widthPercentageToDP as w, heightPercentageToDP as h } from 'react-native-responsive-screen';
 import axios from 'axios';
 import moment from 'moment';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../Firebase/fireConfig';
+import { db, auth } from '../Firebase/fireConfig';
+import iOSColors from '../Commponents/Colors';
 
 const pthree = () => {
   const [name, setName] = useState('memeusdt'); // Default symbol
@@ -43,6 +44,12 @@ const pthree = () => {
   };
 
   const saveData = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      alert('Please log in to save predictions.');
+      return;
+    }
+
     const data = {
       name: name,
       price: price,
@@ -55,6 +62,8 @@ const pthree = () => {
       predictionDate: predictionDate,
       resultTime: resultTime,
       marketTrend: marketTrend,
+      userId: user.uid,
+      createdAt: new Date(),
     };
     await addDoc(collection(db, 'predictions'), data);
   };
@@ -142,7 +151,7 @@ const pthree = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.mainContainer}>
-        <LinearGradient colors={['#2e2e2e', '#1b1b1b']} style={styles.gradientBackground}>
+        <LinearGradient colors={iOSColors.gradients.background} style={styles.gradientBackground}>
           <View style={styles.currentTimeContainer}>
             <Text style={styles.currentTimeText}>{currentTime}</Text>
           </View>
@@ -226,109 +235,118 @@ const calculateRSI = (data, period) => {
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-  },
-  mainContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  gradientBackground: {
-    flex: 1,
-    borderRadius: 10,
-    padding: 20,
-    elevation: 5,
-  },
-  currentTimeContainer: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  currentTimeText: {
-    fontSize: 24,
-    color: 'white',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#333',
-    color: 'white',
-    fontSize: 18,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 5,
-  },
-  button: {
-    backgroundColor: '#444',
-    padding: 10,
-    marginLeft: 10,
-    borderRadius: 5,
-  },
-  dataContainer: {
-    flex: 1,
-    marginTop: 20,
-  },
-  card: {
-    backgroundColor: '#444',
-    borderRadius: 10,
-    padding: 20,
-    elevation: 5,
-  },
-  priceText: {
-    fontSize: 18,
-    color: 'white',
-  },
-  marketCapText: {
-    fontSize: 18,
-  },
-  indicatorsText: {
-    fontSize: 16,
-    color: 'white',
-  },
-  trendText: {
-    fontSize: 18,
-  },
-  predictionText: {
-    fontSize: 16,
-    color: 'yellow',
-  },
-  predictionTimeText: {
-    fontSize: 16,
-    color: 'white',
-  },
-  resultTimeText: {
-    fontSize: 16,
-    color: 'white',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    marginTop: 20,
-    justifyContent: 'space-between',
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#2e7d32',
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 5,
-    marginRight: 5,
-  },
-  timeFrameButton: {
-    flex: 1,
-    backgroundColor: '#388e3c',
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 5,
-    marginLeft: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-});
+   scrollContainer: {
+     flexGrow: 1,
+   },
+   mainContainer: {
+     flex: 1,
+     padding: w('5%'),
+   },
+   gradientBackground: {
+     flex: 1,
+     borderRadius: 10,
+     padding: w('5%'),
+     elevation: 5,
+   },
+   currentTimeContainer: {
+     alignItems: 'center',
+     marginBottom: h('2%'),
+   },
+   currentTimeText: {
+     fontSize: 24,
+     color: iOSColors.text.primary,
+   },
+   inputContainer: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     justifyContent: 'space-between',
+     marginBottom: h('3%'),
+   },
+   input: {
+     flex: 1,
+     backgroundColor: iOSColors.background.tertiary,
+     color: iOSColors.text.primary,
+     fontSize: 18,
+     paddingHorizontal: w('3%'),
+     paddingVertical: h('1%'),
+     borderRadius: 5,
+     borderWidth: 1,
+     borderColor: iOSColors.border.light,
+   },
+   button: {
+     backgroundColor: iOSColors.button.primary,
+     padding: w('3%'),
+     marginLeft: w('3%'),
+     borderRadius: 5,
+   },
+   dataContainer: {
+     flex: 1,
+     marginTop: h('3%'),
+   },
+   card: {
+     backgroundColor: iOSColors.background.secondary,
+     borderRadius: 10,
+     padding: w('5%'),
+     elevation: 5,
+     borderWidth: 1,
+     borderColor: iOSColors.border.light,
+   },
+   priceText: {
+     fontSize: 18,
+     color: iOSColors.text.primary,
+   },
+   marketCapText: {
+     fontSize: 18,
+     color: iOSColors.text.secondary,
+   },
+   indicatorsText: {
+     fontSize: 16,
+     color: iOSColors.text.primary,
+   },
+   trendText: {
+     fontSize: 18,
+     color: iOSColors.text.primary,
+   },
+   predictionText: {
+     fontSize: 16,
+     color: iOSColors.button.primary,
+   },
+   predictionTimeText: {
+     fontSize: 16,
+     color: iOSColors.text.secondary,
+   },
+   resultTimeText: {
+     fontSize: 16,
+     color: iOSColors.text.secondary,
+   },
+   buttonContainer: {
+     flexDirection: 'row',
+     marginTop: h('3%'),
+     justifyContent: 'space-between',
+     flexWrap: 'wrap',
+   },
+   saveButton: {
+     flex: 1,
+     backgroundColor: iOSColors.button.success,
+     paddingVertical: h('2%'),
+     alignItems: 'center',
+     borderRadius: 5,
+     marginRight: w('1%'),
+     marginBottom: h('1%'),
+   },
+   timeFrameButton: {
+     flex: 1,
+     backgroundColor: iOSColors.button.primary,
+     paddingVertical: h('2%'),
+     alignItems: 'center',
+     borderRadius: 5,
+     marginLeft: w('1%'),
+     marginBottom: h('1%'),
+   },
+   buttonText: {
+     color: iOSColors.text.primary,
+     fontSize: 16,
+   },
+ });
 
 export default pthree;

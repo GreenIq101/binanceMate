@@ -1,28 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, Button, Dimensions } from 'react-native';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../Firebase/fireConfig';
+import { View, Text, FlatList, StyleSheet, TextInput, Button, Dimensions, ActivityIndicator } from 'react-native';
+import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
+import { db, auth } from '../Firebase/fireConfig';
 import iOSColors from './Colors';
+import { widthPercentageToDP as w, heightPercentageToDP as h } from 'react-native-responsive-screen';
 
 const { width } = Dimensions.get('window'); // Get screen width
 
 const DataDisplay = () => {
-  const [savedData, setSavedData] = useState([]);
-  const [unsavedData, setUnsavedData] = useState([]);
-  const [orderMetrics, setOrderMetrics] = useState({
-    totalOrders: 0,
-    accuracy90: 0,
-    accuracy80: 0,
-    accuracy60: 0,
-    accuracy50: 0,
-    totalSaved: 0,
-    totalUnsaved: 0,
-  });
+   const [savedData, setSavedData] = useState([]);
+   const [unsavedData, setUnsavedData] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [orderMetrics, setOrderMetrics] = useState({
+     totalOrders: 0,
+     accuracy90: 0,
+     accuracy80: 0,
+     accuracy60: 0,
+     accuracy50: 0,
+     totalSaved: 0,
+     totalUnsaved: 0,
+   });
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, 'predictions'));
+        const user = auth.currentUser;
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const q = query(collection(db, 'predictions'), where('userId', '==', user.uid));
+        const querySnapshot = await getDocs(q);
         const savedList = [];
         const unsavedList = [];
         let accuracy90 = 0, accuracy80 = 0, accuracy60 = 0, accuracy50 = 0;
@@ -58,6 +68,8 @@ const DataDisplay = () => {
         });
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -157,6 +169,15 @@ const DataDisplay = () => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={iOSColors.button.primary} />
+        <Text style={styles.loadingText}>Loading predictions...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -198,8 +219,8 @@ const DataDisplay = () => {
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.cardList}
-              contentContainerStyle={{ minWidth: width * 0.8, flexGrow: 1, minHeight: 220 }}
-              ListEmptyComponent={<Text style={{ color: '#888', textAlign: 'center', padding: 20 }}>No {item.type === 'saved' ? 'saved' : 'unsaved'} predictions.</Text>}
+              contentContainerStyle={{ minWidth: w('85%'), flexGrow: 1, minHeight: h('30%'), paddingHorizontal: w('2%') }}
+              ListEmptyComponent={<Text style={{ color: iOSColors.text.tertiary, textAlign: 'center', padding: w('5%'), fontSize: 16 }}>No {item.type === 'saved' ? 'saved' : 'unsaved'} predictions.</Text>}
             />
           </View>
         )}
@@ -211,126 +232,127 @@ const DataDisplay = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingTop: 20,
-    paddingBottom: 30,
-    backgroundColor: iOSColors.background.primary,
-    minHeight: '100%',
-  },
-  scrollContainer: {
-    height: 60,
-  },
-  header: {
-    marginBottom: 20,
-    padding: 20,
-    backgroundColor: iOSColors.background.secondary,
-    borderRadius: 16,
-  minHeight: 100,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: iOSColors.text.primary,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  metricContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  metricText: {
-    fontSize: 14,
-    color: iOSColors.text.secondary,
-    marginHorizontal: 8,
-    marginVertical: 4,
-    fontWeight: '500',
-    backgroundColor: iOSColors.background.tertiary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  sectionHeader: {
-    marginBottom: 16,
-    marginTop: 24,
-  },
-  cardList: {
-    marginBottom: 24,
-  },
-  card: {
-    width: width * 0.8,
-    padding: 20,
-    backgroundColor: iOSColors.background.secondary,
-    borderRadius: 16,
-    marginRight: 16,
-  minHeight: 260,
-    borderWidth: 1,
-    borderColor: iOSColors.border.light,
-  },
+   container: {
+     flex: 1,
+     paddingHorizontal: w('3%'),
+     paddingTop: h('3%'),
+     paddingBottom: h('5%'),
+     backgroundColor: iOSColors.background.primary,
+     minHeight: '100%',
+   },
+   scrollContainer: {
+     height: h('8%'),
+   },
+   header: {
+     marginBottom: h('3%'),
+     padding: w('5%'),
+     backgroundColor: iOSColors.background.secondary,
+     borderRadius: 16,
+     minHeight: h('15%'),
+   },
+   headerText: {
+     fontSize: 24,
+     fontWeight: '700',
+     color: iOSColors.text.primary,
+     textAlign: 'center',
+     marginBottom: h('2%'),
+   },
+   metricContainer: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     flexWrap: 'wrap',
+     justifyContent: 'center',
+   },
+   metricText: {
+     fontSize: 14,
+     color: iOSColors.text.secondary,
+     marginHorizontal: w('2%'),
+     marginVertical: h('0.5%'),
+     fontWeight: '500',
+     backgroundColor: iOSColors.background.tertiary,
+     paddingHorizontal: w('3%'),
+     paddingVertical: h('1%'),
+     borderRadius: 8,
+   },
+   sectionHeader: {
+     marginBottom: h('2%'),
+     marginTop: h('3%'),
+   },
+   cardList: {
+     marginBottom: h('3%'),
+   },
+   card: {
+     width: w('85%'),
+     padding: w('5%'),
+     backgroundColor: iOSColors.background.secondary,
+     borderRadius: 16,
+     marginRight: w('4%'),
+     minHeight: h('35%'),
+     borderWidth: 1,
+     borderColor: iOSColors.border.light,
+   },
   nameText: {
     fontSize: 20,
     fontWeight: '600',
     color: iOSColors.text.primary,
-    marginBottom: 8,
+    marginBottom: h('1%'),
   },
   priceText: {
     fontSize: 16,
     color: iOSColors.text.secondary,
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: h('0.5%'),
   },
   marketCapText: {
     fontSize: 16,
     color: iOSColors.text.secondary,
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: h('0.5%'),
   },
   indicatorsText: {
     fontSize: 14,
     color: iOSColors.text.tertiary,
     fontWeight: '400',
-    marginBottom: 2,
+    marginBottom: h('0.3%'),
   },
   trendText: {
     fontSize: 14,
     color: iOSColors.status.bullish,
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: h('0.5%'),
   },
   predictionText: {
     fontSize: 16,
     color: iOSColors.button.primary,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: h('0.5%'),
   },
   predictionTimeText: {
     fontSize: 14,
     color: iOSColors.text.secondary,
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: h('0.3%'),
   },
   predictionDateText: {
     fontSize: 14,
     color: iOSColors.text.tertiary,
     fontWeight: '400',
-    marginBottom: 8,
+    marginBottom: h('1%'),
   },
   input: {
-    height: 48,
+    height: h('6%'),
     borderColor: iOSColors.border.light,
     borderWidth: 1,
     borderRadius: 12,
-    marginVertical: 6,
-    paddingLeft: 16,
+    marginVertical: h('1%'),
+    paddingLeft: w('4%'),
     backgroundColor: iOSColors.background.tertiary,
     color: iOSColors.text.primary,
     fontSize: 16,
   },
   accuracyContainer: {
-    marginTop: 12,
-    padding: 12,
+    marginTop: h('2%'),
+    padding: w('3%'),
     backgroundColor: iOSColors.background.tertiary,
     borderRadius: 8,
   },
@@ -345,7 +367,19 @@ const styles = StyleSheet.create({
     color: iOSColors.button.success,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: h('1%'),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: iOSColors.background.primary,
+    paddingVertical: h('10%'),
+  },
+  loadingText: {
+    color: iOSColors.text.secondary,
+    fontSize: 16,
+    marginTop: h('2%'),
   },
 });
 

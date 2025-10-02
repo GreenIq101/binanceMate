@@ -475,11 +475,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: w('5%'),
-    paddingTop: h('7%'),
-    paddingBottom: h('5%'),
+    paddingTop: h('4%'),
+    paddingBottom: h('2%'),
   },
   header: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   headerLeft: {
     flexDirection: 'row',
@@ -502,10 +502,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: iOSColors.text.primary,
-    marginBottom: h('2%'),
+    marginBottom: h('1%'),
   },
   popularCoinsSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   coinsGrid: {
     flexDirection: 'row',
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   },
   coinButton: {
     width: w('28%'),
-    marginBottom: h('2%'),
+    marginBottom: h('1%'),
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     color: iOSColors.text.primary,
   },
   inputSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   inputGradient: {
     borderRadius: 16,
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     borderColor: iOSColors.border.light,
   },
   timeframeSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   timeframeContainer: {
     flexDirection: 'row',
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     color: iOSColors.text.primary,
   },
   priceSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   priceGradient: {
     borderRadius: 16,
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: h('2%'),
+    marginBottom: h('1%'),
   },
   priceTitle: {
     fontSize: 18,
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   priceItem: {
     width: w('45%'),
-    marginBottom: h('2%'),
+    marginBottom: h('1%'),
   },
   priceLabel: {
     fontSize: 12,
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     color: iOSColors.text.primary,
   },
   predictSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   predictButton: {
     borderRadius: 16,
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     marginLeft: w('2%'),
   },
   predictionSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   predictionGradient: {
     borderRadius: 16,
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: h('2%'),
+    marginBottom: h('1%'),
   },
   predictionTitle: {
     fontSize: 18,
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
   },
   predictionMain: {
     alignItems: 'center',
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   predictedPriceLabel: {
     fontSize: 14,
@@ -737,13 +737,13 @@ const styles = StyleSheet.create({
   indicatorsContainer: {
     borderTopWidth: 1,
     borderTopColor: iOSColors.border.light,
-    paddingTop: h('2%'),
+    paddingTop: h('1%'),
   },
   indicatorsTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: iOSColors.text.primary,
-    marginBottom: h('2%'),
+    marginBottom: h('1%'),
   },
   indicatorsGrid: {
     flexDirection: 'row',
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
   },
   indicatorItem: {
     width: w('45%'),
-    marginBottom: h('1.5%'),
+    marginBottom: h('1%'),
   },
   indicatorLabel: {
     fontSize: 12,
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
     color: iOSColors.text.primary,
   },
   disclaimerSection: {
-    marginBottom: h('3%'),
+    marginBottom: h('2%'),
   },
   disclaimerGradient: {
     flexDirection: 'row',

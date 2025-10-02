@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: w('5%'),
     paddingTop: h('7%'),
-    paddingBottom: h('16%'), // Increased padding for tab bar/footer
+    paddingBottom: h('10%'), // Adjusted padding for tab bar/footer
   },
   headerContainer: {
     marginBottom: h('3%'),
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
   portfolioGradient: {
     borderRadius: 20,
     padding: w('5%'),
-    minHeight: 120,
+    minHeight: h('15%'),
     borderWidth: 1,
     borderColor: 'rgba(255, 215, 0, 0.1)',
   },
@@ -621,17 +621,18 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   marketCard: {
-    width: w('28%'),
+    width: w('45%'),
     borderRadius: 16,
     overflow: 'hidden',
-    minHeight: 90,
+    minHeight: h('12%'),
+    marginBottom: h('2%'),
     borderWidth: 1,
     borderColor: 'rgba(255, 215, 0, 0.05)',
   },
   marketGradient: {
     padding: w('4%'),
     alignItems: 'center',
-    minHeight: h('12%'),
+    minHeight: h('10%'),
   },
   coinSymbol: {
     fontSize: 14,
@@ -702,12 +703,14 @@ const styles = StyleSheet.create({
   marketStatsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
   },
   marketStatSection: {
-    width: w('30%'),
+    width: w('45%'),
     borderRadius: 12,
     overflow: 'hidden',
-    minHeight: 80,
+    minHeight: h('12%'),
+    marginBottom: h('2%'),
   },
   marketStatGradient: {
     padding: w('4%'),

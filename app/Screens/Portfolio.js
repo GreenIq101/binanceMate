@@ -8,7 +8,8 @@ import {
   FlatList,
   Alert,
   Animated,
-  Dimensions
+  Dimensions,
+  TextInput
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,6 +27,12 @@ const Portfolio = () => {
   const [totalPnL, setTotalPnL] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('24h');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newHolding, setNewHolding] = useState({
+    symbol: '',
+    amount: '',
+    avgPrice: ''
+  });
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -98,51 +105,61 @@ const Portfolio = () => {
   };
 
   const fetchCurrentPrice = async (symbol) => {
-    // Simplified price fetching - in real app, use actual crypto API
-    const mockPrices = {
-      'BTC': 45000,
-      'ETH': 2800,
-      'BNB': 320,
-      'ADA': 0.45,
-      'SOL': 95,
-      'DOT': 7.2,
-      'DOGE': 0.085,
-      'AVAX': 35,
-      'LTC': 75,
-      'MATIC': 0.85,
-    };
-    return mockPrices[symbol] || 1;
+    try {
+      const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`);
+      const data = await response.json();
+      return parseFloat(data.price) || 0;
+    } catch (error) {
+      console.error(`Error fetching price for ${symbol}:`, error);
+      return 0;
+    }
   };
 
-  const addHolding = async () => {
-    Alert.prompt(
-      'Add Holding',
-      'Enter symbol, amount, and average price (comma separated)',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Add',
-          onPress: async (input) => {
-            const [symbol, amount, avgPrice] = input.split(',');
-            if (symbol && amount && avgPrice) {
-              try {
-                const user = auth.currentUser;
-                await addDoc(collection(db, 'portfolio'), {
-                  userId: user.uid,
-                  symbol: symbol.toUpperCase().trim(),
-                  amount: parseFloat(amount),
-                  avgPrice: parseFloat(avgPrice),
-                  dateAdded: new Date(),
-                });
-                loadPortfolio();
-              } catch (error) {
-                Alert.alert('Error', 'Failed to add holding');
-              }
-            }
-          }
-        }
-      ]
-    );
+  const addHolding = () => {
+    setShowAddForm(true);
+  };
+
+  const saveHolding = async () => {
+    const { symbol, amount, avgPrice } = newHolding;
+
+    if (!symbol.trim() || !amount.trim() || !avgPrice.trim()) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    const amountNum = parseFloat(amount);
+    const priceNum = parseFloat(avgPrice);
+
+    if (isNaN(amountNum) || isNaN(priceNum) || amountNum <= 0 || priceNum <= 0) {
+      Alert.alert('Error', 'Please enter valid numbers');
+      return;
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      await addDoc(collection(db, 'portfolio'), {
+        userId: user.uid,
+        symbol: symbol.toUpperCase().trim(),
+        amount: amountNum,
+        avgPrice: priceNum,
+        dateAdded: new Date(),
+      });
+
+      setNewHolding({ symbol: '', amount: '', avgPrice: '' });
+      setShowAddForm(false);
+      loadPortfolio();
+      Alert.alert('Success', 'Holding added successfully');
+    } catch (error) {
+      console.error('Error adding holding:', error);
+      Alert.alert('Error', 'Failed to add holding');
+    }
+  };
+
+  const cancelAddHolding = () => {
+    setNewHolding({ symbol: '', amount: '', avgPrice: '' });
+    setShowAddForm(false);
   };
 
   const removeHolding = async (holdingId) => {
@@ -270,6 +287,73 @@ const Portfolio = () => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
+
+        {/* Add Holding Form */}
+        {showAddForm && (
+          <Animated.View
+            style={[
+              styles.addFormContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={iOSColors.gradients.card}
+              style={styles.addFormGradient}
+            >
+              <Text style={styles.formTitle}>Add New Holding</Text>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Symbol (e.g., BTC, ETH)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter symbol"
+                  placeholderTextColor={iOSColors.text.tertiary}
+                  value={newHolding.symbol}
+                  onChangeText={(text) => setNewHolding({...newHolding, symbol: text.toUpperCase()})}
+                  autoCapitalize="characters"
+                  maxLength={10}
+                />
+
+                <Text style={styles.inputLabel}>Amount</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter amount"
+                  placeholderTextColor={iOSColors.text.tertiary}
+                  value={newHolding.amount}
+                  onChangeText={(text) => setNewHolding({...newHolding, amount: text})}
+                  keyboardType="decimal-pad"
+                />
+
+                <Text style={styles.inputLabel}>Average Price (USD)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter average price"
+                  placeholderTextColor={iOSColors.text.tertiary}
+                  value={newHolding.avgPrice}
+                  onChangeText={(text) => setNewHolding({...newHolding, avgPrice: text})}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+
+              <View style={styles.formButtons}>
+                <TouchableOpacity onPress={cancelAddHolding} style={styles.cancelButton}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={saveHolding} style={styles.saveButton}>
+                  <LinearGradient
+                    colors={iOSColors.gradients.primary}
+                    style={styles.saveButtonGradient}
+                  >
+                    <Text style={styles.saveButtonText}>Add Holding</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        )}
 
         {/* Portfolio Summary */}
         <View style={styles.summaryContainer}>
@@ -538,6 +622,76 @@ const styles = StyleSheet.create({
     paddingVertical: h('2%'),
   },
   emptyButtonText: {
+    color: iOSColors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  addFormContainer: {
+    marginBottom: h('3%'),
+  },
+  addFormGradient: {
+    borderRadius: 16,
+    padding: w('5%'),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  formTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: h('3%'),
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: h('3%'),
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: h('1%'),
+    marginTop: h('2%'),
+  },
+  input: {
+    backgroundColor: iOSColors.background.tertiary,
+    borderRadius: 8,
+    padding: w('4%'),
+    fontSize: 16,
+    color: iOSColors.text.primary,
+    borderWidth: 1,
+    borderColor: iOSColors.border.light,
+  },
+  formButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: iOSColors.background.tertiary,
+    borderRadius: 8,
+    padding: h('2%'),
+    alignItems: 'center',
+    marginRight: w('2%'),
+  },
+  cancelButtonText: {
+    color: iOSColors.text.secondary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveButton: {
+    flex: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginLeft: w('2%'),
+  },
+  saveButtonGradient: {
+    paddingVertical: h('2%'),
+    alignItems: 'center',
+  },
+  saveButtonText: {
     color: iOSColors.text.primary,
     fontSize: 16,
     fontWeight: '600',

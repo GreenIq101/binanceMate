@@ -17,35 +17,47 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as w, heightPercentageToDP as h } from 'react-native-responsive-screen';
 import iOSColors from '../Commponents/Colors';
 import { auth, db } from '../Firebase/fireConfig';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { usePriceMonitor } from '../Commponents/PriceMonitor';
 
 const { width } = Dimensions.get('window');
 
 const Alerts = () => {
   const [alerts, setAlerts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [currentPrices, setCurrentPrices] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showCreateAlert, setShowCreateAlert] = useState(false);
   const [selectedCoin, setSelectedCoin] = useState('');
   const [alertPrice, setAlertPrice] = useState('');
   const [alertType, setAlertType] = useState('above'); // 'above' or 'below'
   const [isEnabled, setIsEnabled] = useState(true);
+  const [coinSearch, setCoinSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [customCoins, setCustomCoins] = useState([]);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
-  // Popular cryptocurrencies for alerts
+  // Popular cryptocurrencies for alerts (Binance symbols)
   const availableCoins = [
-    { symbol: 'BTC', name: 'Bitcoin', currentPrice: 45000 },
-    { symbol: 'ETH', name: 'Ethereum', currentPrice: 2800 },
-    { symbol: 'BNB', name: 'Binance Coin', currentPrice: 320 },
-    { symbol: 'ADA', name: 'Cardano', currentPrice: 0.45 },
-    { symbol: 'SOL', name: 'Solana', currentPrice: 95 },
-    { symbol: 'DOT', name: 'Polkadot', currentPrice: 7.2 },
-    { symbol: 'DOGE', name: 'Dogecoin', currentPrice: 0.085 },
-    { symbol: 'AVAX', name: 'Avalanche', currentPrice: 35 },
-    { symbol: 'LTC', name: 'Litecoin', currentPrice: 75 },
-    { symbol: 'MATIC', name: 'Polygon', currentPrice: 0.85 },
+    { symbol: 'BTC', name: 'Bitcoin', id: 'btc' },
+    { symbol: 'ETH', name: 'Ethereum', id: 'eth' },
+    { symbol: 'BNB', name: 'Binance Coin', id: 'bnb' },
+    { symbol: 'ADA', name: 'Cardano', id: 'ada' },
+    { symbol: 'SOL', name: 'Solana', id: 'sol' },
+    { symbol: 'DOT', name: 'Polkadot', id: 'dot' },
+    { symbol: 'DOGE', name: 'Dogecoin', id: 'doge' },
+    { symbol: 'AVAX', name: 'Avalanche', id: 'avax' },
+    { symbol: 'LTC', name: 'Litecoin', id: 'ltc' },
+    { symbol: 'MATIC', name: 'Polygon', id: 'matic' },
   ];
+
+  // Initialize price monitoring with all available coins
+  const allCoins = [...availableCoins, ...customCoins];
+  const priceMonitor = usePriceMonitor(allCoins);
 
   useEffect(() => {
     // Start entrance animation
@@ -67,29 +79,72 @@ const Alerts = () => {
 
   const loadAlerts = async () => {
     try {
+      console.log('Starting loadAlerts...');
+      setError(null);
       const user = auth.currentUser;
-      if (!user) return;
+      console.log('Current user:', user ? user.uid : 'No user');
 
-      const q = query(collection(db, 'alerts'), where('userId', '==', user.uid));
-      const querySnapshot = await getDocs(q);
-
-      const alertsData = [];
-      for (const docSnap of querySnapshot.docs) {
-        const alert = { id: docSnap.id, ...docSnap.data() };
-        // Get current price data
-        const coinData = availableCoins.find(coin => coin.symbol === alert.symbol);
-        if (coinData) {
-          alertsData.push({
-            ...alert,
-            currentPrice: coinData.currentPrice,
-          });
-        }
+      if (!user) {
+        console.log('No user found, skipping loadAlerts');
+        setIsLoading(false);
+        return;
       }
 
+      // Fetch current prices including custom coins
+      console.log('Fetching prices...');
+      const allCoins = [...availableCoins, ...customCoins];
+      console.log('All coins:', allCoins);
+      const prices = await priceMonitor.fetchCurrentPrices(allCoins);
+      console.log('Prices fetched:', prices);
+
+      if (prices) {
+        setCurrentPrices(prices);
+      }
+
+      // Load alerts
+      console.log('Loading alerts from Firestore...');
+      const alertsQuery = query(collection(db, 'alerts'), where('userId', '==', user.uid));
+      const alertsSnapshot = await getDocs(alertsQuery);
+      console.log('Alerts snapshot:', alertsSnapshot.size, 'documents');
+
+      const alertsData = [];
+      alertsSnapshot.forEach((docSnap) => {
+        const alert = { id: docSnap.id, ...docSnap.data() };
+        const currentPrice = prices ? prices[alert.symbol] : 0;
+        alertsData.push({
+          ...alert,
+          currentPrice: currentPrice,
+        });
+      });
+
+      console.log('Processed alerts:', alertsData.length);
       setAlerts(alertsData);
+
+      // Load recent notifications
+      console.log('Loading notifications...');
+      const notificationsQuery = query(
+        collection(db, 'notifications'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      );
+      const notificationsSnapshot = await getDocs(notificationsQuery);
+      console.log('Notifications snapshot:', notificationsSnapshot.size, 'documents');
+
+      const notificationsData = [];
+      notificationsSnapshot.forEach((docSnap) => {
+        notificationsData.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      console.log('Processed notifications:', notificationsData.length);
+      setNotifications(notificationsData);
+
+      console.log('loadAlerts completed successfully');
     } catch (error) {
       console.error('Error loading alerts:', error);
-      Alert.alert('Error', 'Failed to load alerts');
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+      setError('Failed to load alerts. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -162,12 +217,81 @@ const Alerts = () => {
     );
   };
 
+  const searchCoins = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Get available trading pairs from Binance
+      const exchangeInfoResponse = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+      const exchangeInfo = await exchangeInfoResponse.json();
+
+      // Filter USDT pairs and search by symbol or base asset
+      const usdtPairs = exchangeInfo.symbols
+        .filter(symbol => symbol.symbol.endsWith('USDT') && symbol.status === 'TRADING')
+        .filter(symbol =>
+          symbol.symbol.toLowerCase().includes(query.toLowerCase()) ||
+          symbol.baseAsset.toLowerCase().includes(query.toLowerCase())
+        )
+        .slice(0, 10)
+        .map(symbol => ({
+          symbol: symbol.baseAsset,
+          name: symbol.baseAsset,
+          id: symbol.baseAsset.toLowerCase(),
+          pair: symbol.symbol
+        }));
+
+      setSearchResults(usdtPairs);
+    } catch (error) {
+      console.error('Error searching coins:', error);
+      // Fallback to manual entry
+      if (query.length >= 2) {
+        setSearchResults([{
+          symbol: query.toUpperCase(),
+          name: query.toUpperCase(),
+          id: query.toLowerCase(),
+          pair: `${query.toUpperCase()}USDT`
+        }]);
+      } else {
+        setSearchResults([]);
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const addCustomCoin = (coin) => {
+    const newCoin = {
+      symbol: coin.symbol.toUpperCase(),
+      name: coin.name,
+      id: coin.id,
+    };
+
+    // Check if coin already exists
+    const exists = [...availableCoins, ...customCoins].find(
+      c => c.symbol === newCoin.symbol
+    );
+
+    if (!exists) {
+      setCustomCoins(prev => [...prev, newCoin]);
+    }
+
+    setSelectedCoin(newCoin.symbol);
+    setCoinSearch('');
+    setSearchResults([]);
+  };
+
   const resetForm = () => {
     setSelectedCoin('');
     setAlertPrice('');
     setAlertType('above');
     setIsEnabled(true);
     setShowCreateAlert(false);
+    setCoinSearch('');
+    setSearchResults([]);
   };
 
   const renderAlert = ({ item }) => (
@@ -240,9 +364,59 @@ const Alerts = () => {
       ]}>
         {item.symbol} - {item.name}
       </Text>
-      <Text style={styles.coinOptionPrice}>${item.currentPrice.toFixed(2)}</Text>
+      <Text style={styles.coinOptionPrice}>
+        ${currentPrices[item.symbol] ? currentPrices[item.symbol].toFixed(2) : 'Loading...'}
+      </Text>
     </TouchableOpacity>
   );
+
+  const renderNotification = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.notificationCard,
+        !item.read && styles.notificationUnread
+      ]}
+      onPress={() => markNotificationAsRead(item.id)}
+    >
+      <LinearGradient
+        colors={!item.read ? iOSColors.gradients.primary : iOSColors.gradients.card}
+        style={styles.notificationGradient}
+      >
+        <View style={styles.notificationHeader}>
+          <View style={styles.notificationIcon}>
+            <MaterialCommunityIcons
+              name={item.type === 'price_alert' ? 'bell-ring' : 'information'}
+              size={20}
+              color={!item.read ? iOSColors.text.onPrimary : iOSColors.button.primary}
+            />
+          </View>
+          <View style={styles.notificationContent}>
+            <Text style={[styles.notificationTitle, !item.read && styles.notificationTitleUnread]}>
+              {item.title}
+            </Text>
+            <Text style={[styles.notificationMessage, !item.read && styles.notificationMessageUnread]}>
+              {item.message}
+            </Text>
+            <Text style={styles.notificationTime}>
+              {new Date(item.createdAt.seconds * 1000).toLocaleString()}
+            </Text>
+          </View>
+          {!item.read && <View style={styles.unreadDot} />}
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await updateDoc(doc(db, 'notifications', notificationId), {
+        read: true,
+      });
+      loadAlerts(); // Refresh data
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -253,6 +427,35 @@ const Alerts = () => {
           color={iOSColors.button.primary}
         />
         <Text style={styles.loadingText}>Loading Alerts...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <MaterialCommunityIcons
+          name="alert-circle"
+          size={60}
+          color={iOSColors.button.danger}
+        />
+        <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+        <Text style={styles.errorMessage}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            setIsLoading(true);
+            loadAlerts();
+          }}
+        >
+          <LinearGradient
+            colors={iOSColors.gradients.primary}
+            style={styles.retryButtonGradient}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -302,8 +505,65 @@ const Alerts = () => {
 
               {/* Coin Selection */}
               <Text style={styles.formLabel}>Select Cryptocurrency</Text>
+
+              {/* Search Input */}
+              <View style={styles.searchContainer}>
+                <TextInput
+                  style={styles.coinSearchInput}
+                  placeholder="Search for any cryptocurrency..."
+                  placeholderTextColor={iOSColors.text.tertiary}
+                  value={coinSearch}
+                  onChangeText={(text) => {
+                    setCoinSearch(text);
+                    searchCoins(text);
+                  }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {isSearching && (
+                  <View style={styles.searchIndicator}>
+                    <MaterialCommunityIcons
+                      name="loading"
+                      size={20}
+                      color={iOSColors.button.primary}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <View style={styles.searchResultsContainer}>
+                  <Text style={styles.searchResultsTitle}>Search Results</Text>
+                  <FlatList
+                    data={searchResults}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.searchResultCard}
+                        onPress={() => addCustomCoin(item)}
+                      >
+                        <View style={styles.searchResultContent}>
+                          <Text style={styles.searchResultSymbol}>{item.symbol.toUpperCase()}</Text>
+                          <Text style={styles.searchResultName}>{item.name}</Text>
+                        </View>
+                        <MaterialCommunityIcons
+                          name="plus-circle"
+                          size={24}
+                          color={iOSColors.button.primary}
+                        />
+                      </TouchableOpacity>
+                    )}
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    style={styles.searchResultsList}
+                  />
+                </View>
+              )}
+
+              {/* Popular Coins */}
+              <Text style={styles.formLabel}>Popular Cryptocurrencies</Text>
               <FlatList
-                data={availableCoins}
+                data={[...availableCoins, ...customCoins]}
                 renderItem={renderCoinOption}
                 keyExtractor={(item) => item.symbol}
                 horizontal
@@ -411,6 +671,20 @@ const Alerts = () => {
             </View>
           )}
         </View>
+
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <View style={styles.notificationsContainer}>
+            <Text style={styles.sectionTitle}>Recent Notifications</Text>
+            <FlatList
+              data={notifications}
+              renderItem={renderNotification}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.notificationsList}
+            />
+          </View>
+        )}
       </LinearGradient>
     </ScrollView>
   );
@@ -655,6 +929,168 @@ const styles = StyleSheet.create({
     paddingVertical: h('2%'),
   },
   emptyButtonText: {
+    color: iOSColors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  notificationsContainer: {
+    marginTop: h('3%'),
+  },
+  notificationsList: {
+    paddingBottom: h('5%'),
+  },
+  notificationCard: {
+    marginBottom: h('2%'),
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  notificationUnread: {
+    shadowColor: iOSColors.button.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  notificationGradient: {
+    padding: w('4%'),
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: w('3%'),
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: 4,
+  },
+  notificationTitleUnread: {
+    color: iOSColors.text.onPrimary,
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: iOSColors.text.secondary,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
+  notificationMessageUnread: {
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  notificationTime: {
+    fontSize: 12,
+    color: iOSColors.text.tertiary,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: iOSColors.button.warning,
+    marginTop: 6,
+  },
+  searchContainer: {
+    position: 'relative',
+    marginBottom: h('2%'),
+  },
+  coinSearchInput: {
+    backgroundColor: iOSColors.background.tertiary,
+    borderRadius: 12,
+    padding: w('4%'),
+    paddingRight: w('12%'),
+    fontSize: 16,
+    color: iOSColors.text.primary,
+    borderWidth: 1,
+    borderColor: iOSColors.border.light,
+  },
+  searchIndicator: {
+    position: 'absolute',
+    right: w('4%'),
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  searchResultsContainer: {
+    marginBottom: h('3%'),
+    maxHeight: h('30%'),
+  },
+  searchResultsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: h('2%'),
+  },
+  searchResultsList: {
+    maxHeight: h('25%'),
+  },
+  searchResultCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: iOSColors.background.tertiary,
+    borderRadius: 12,
+    padding: w('4%'),
+    marginBottom: h('1%'),
+    borderWidth: 1,
+    borderColor: iOSColors.border.light,
+  },
+  searchResultContent: {
+    flex: 1,
+  },
+  searchResultSymbol: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: iOSColors.button.primary,
+    marginBottom: 2,
+  },
+  searchResultName: {
+    fontSize: 14,
+    color: iOSColors.text.secondary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: iOSColors.background.primary,
+    paddingHorizontal: w('10%'),
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: iOSColors.text.primary,
+    marginTop: h('3%'),
+    marginBottom: h('2%'),
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: iOSColors.text.secondary,
+    textAlign: 'center',
+    marginBottom: h('4%'),
+    lineHeight: 24,
+  },
+  retryButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: iOSColors.button.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  retryButtonGradient: {
+    paddingHorizontal: w('8%'),
+    paddingVertical: h('2%'),
+  },
+  retryButtonText: {
     color: iOSColors.text.primary,
     fontSize: 16,
     fontWeight: '600',

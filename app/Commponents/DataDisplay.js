@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, Button, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db, auth } from '../Firebase/fireConfig';
 import iOSColors from './Colors';
@@ -124,57 +126,153 @@ const DataDisplay = () => {
   };
 
   const renderCard = ({ item, index, dataList, setDataList, setSavedData }) => (
-    <View style={styles.card}>
-      <Text style={styles.nameText}>Currency: {item.name}</Text>
-      <Text style={styles.priceText}>Price: {item.price}</Text>
-      <Text style={styles.marketCapText}>Market Cap: {item.marketCap}</Text>
-      <Text style={styles.indicatorsText}>SMA: {item.sma}, EMA: {item.ema}, RSI: {item.rsi}</Text>
-      <Text style={styles.trendText}>Market Trend: {item.marketTrend}</Text>
-      <Text style={styles.predictionText}>Predicted Price: {item.predictedPrice}</Text>
-      <Text style={styles.predictionTimeText}>Prediction Time: {item.predictionTime}</Text>
-      <Text style={styles.predictionDateText}>Prediction Date: {item.predictionDate}</Text>
-
-      {!item.saved && (
-        <>
-          <TextInput
-            placeholder="Enter Result Time"
-            style={styles.input}
-            value={item.resultTime}
-            onChangeText={(value) => {
-              const updatedData = [...dataList];
-              updatedData[index].resultTime = value;
-              setDataList(updatedData);
-            }}
+    <LinearGradient
+      colors={iOSColors.gradients.card}
+      style={styles.card}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.currencyContainer}>
+          <MaterialCommunityIcons
+            name="bitcoin"
+            size={24}
+            color={iOSColors.button.primary}
           />
-          <TextInput
-            placeholder="Enter Actual Price"
-            style={styles.input}
-            value={item.price}
-            onChangeText={(value) => {
-              const updatedData = [...dataList];
-              updatedData[index].price = value;
-              setDataList(updatedData);
-            }}
-            keyboardType="numeric"
-          />
-          <Button title="Calculate Accuracy" onPress={() => calculateAccuracy(index, dataList, setDataList)} />
-        </>
-      )}
-
-      {item.accuracy && (
-        <View style={styles.accuracyContainer}>
-          <Text style={styles.accuracyText}>Accuracy: {item.accuracy}%</Text>
+          <Text style={styles.currencyName}>{item.name}</Text>
         </View>
-      )}
+        <View style={[styles.statusBadge, { backgroundColor: item.marketTrend === 'Bullish' ? iOSColors.status.bullish : iOSColors.status.bearish }]}>
+          <Text style={styles.statusText}>{item.marketTrend}</Text>
+        </View>
+      </View>
 
-      {!item.saved && (
-        <Button title="Save Results" onPress={() => saveResults(index, dataList, setDataList, setSavedData)} />
-      )}
+      <View style={styles.cardContent}>
+        <View style={styles.priceSection}>
+          <Text style={styles.priceLabel}>Current Price</Text>
+          <Text style={styles.priceValue}>${item.price}</Text>
+        </View>
 
-      {item.saved && (
-        <Text style={styles.savedText}>Results saved!</Text>
-      )}
-    </View>
+        <View style={styles.detailsGrid}>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Market Cap</Text>
+            <Text style={styles.detailValue}>{item.marketCap}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Predicted</Text>
+            <Text style={styles.detailValue}>${item.predictedPrice}</Text>
+          </View>
+        </View>
+
+        <View style={styles.indicatorsSection}>
+          <Text style={styles.sectionTitle}>Technical Indicators</Text>
+          <View style={styles.indicatorsGrid}>
+            <View style={styles.indicatorItem}>
+              <Text style={styles.indicatorLabel}>SMA</Text>
+              <Text style={styles.indicatorValue}>{item.sma}</Text>
+            </View>
+            <View style={styles.indicatorItem}>
+              <Text style={styles.indicatorLabel}>EMA</Text>
+              <Text style={styles.indicatorValue}>{item.ema}</Text>
+            </View>
+            <View style={styles.indicatorItem}>
+              <Text style={styles.indicatorLabel}>RSI</Text>
+              <Text style={styles.indicatorValue}>{item.rsi}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.predictionInfo}>
+          <View style={styles.predictionDetail}>
+            <MaterialCommunityIcons name="clock-outline" size={16} color={iOSColors.text.tertiary} />
+            <Text style={styles.predictionTime}>{item.predictionTime}</Text>
+          </View>
+          <View style={styles.predictionDetail}>
+            <MaterialCommunityIcons name="calendar" size={16} color={iOSColors.text.tertiary} />
+            <Text style={styles.predictionDate}>{item.predictionDate}</Text>
+          </View>
+        </View>
+
+        {!item.saved && (
+          <View style={styles.inputSection}>
+            <TextInput
+              placeholder="Result Time"
+              style={styles.input}
+              value={item.resultTime}
+              onChangeText={(value) => {
+                const updatedData = [...dataList];
+                updatedData[index].resultTime = value;
+                setDataList(updatedData);
+              }}
+              placeholderTextColor={iOSColors.text.tertiary}
+            />
+            <TextInput
+              placeholder="Actual Price"
+              style={styles.input}
+              value={item.price}
+              onChangeText={(value) => {
+                const updatedData = [...dataList];
+                updatedData[index].price = value;
+                setDataList(updatedData);
+              }}
+              keyboardType="numeric"
+              placeholderTextColor={iOSColors.text.tertiary}
+            />
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => calculateAccuracy(index, dataList, setDataList)}
+            >
+              <LinearGradient
+                colors={iOSColors.gradients.primary}
+                style={styles.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.buttonText}>Calculate Accuracy</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {item.accuracy && (
+          <View style={styles.accuracyContainer}>
+            <MaterialCommunityIcons
+              name="target"
+              size={20}
+              color={parseFloat(item.accuracy) >= 80 ? iOSColors.status.bullish : iOSColors.status.bearish}
+            />
+            <Text style={[styles.accuracyText, {
+              color: parseFloat(item.accuracy) >= 80 ? iOSColors.status.bullish : iOSColors.status.bearish
+            }]}>
+              {item.accuracy}% Accuracy
+            </Text>
+          </View>
+        )}
+
+        {!item.saved && (
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={() => saveResults(index, dataList, setDataList, setSavedData)}
+          >
+            <LinearGradient
+              colors={iOSColors.gradients.success}
+              style={styles.buttonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <MaterialCommunityIcons name="content-save" size={18} color={iOSColors.text.onPrimary} />
+              <Text style={styles.saveButtonText}>Save Results</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        {item.saved && (
+          <View style={styles.savedIndicator}>
+            <MaterialCommunityIcons name="check-circle" size={20} color={iOSColors.button.success} />
+            <Text style={styles.savedText}>Results Saved</Text>
+          </View>
+        )}
+      </View>
+    </LinearGradient>
   );
 
   if (loading) {
@@ -187,204 +285,461 @@ const DataDisplay = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Order Metrics</Text>
-        <View style={styles.scrollContainer}>
-          <View style={styles.metricContainer}>
-            <Text style={styles.metricText}>Total Orders: {orderMetrics.totalOrders}</Text>
-            <Text style={styles.metricText}>90% Accuracy: {orderMetrics.accuracy90}</Text>
-            <Text style={styles.metricText}>80% Accuracy: {orderMetrics.accuracy80}</Text>
-            <Text style={styles.metricText}>60% Accuracy: {orderMetrics.accuracy60}</Text>
-            <Text style={styles.metricText}>50% Accuracy: {orderMetrics.accuracy50}</Text>
-            <Text style={styles.metricText}>Saved Orders: {orderMetrics.totalSaved}</Text>
-            <Text style={styles.metricText}>Unsaved Orders: {orderMetrics.totalUnsaved}</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <LinearGradient
+        colors={iOSColors.gradients.background}
+        style={styles.header}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.headerTitleContainer}>
+            <MaterialCommunityIcons
+              name="chart-line-variant"
+              size={32}
+              color={iOSColors.button.primary}
+            />
+            <Text style={styles.headerTitle}>Analysis Dashboard</Text>
+          </View>
+          <Text style={styles.headerSubtitle}>Track your prediction performance</Text>
+        </View>
+
+        <View style={styles.metricsGrid}>
+          <View style={styles.metricCard}>
+            <MaterialCommunityIcons name="clipboard-list" size={24} color={iOSColors.button.primary} />
+            <Text style={styles.metricValue}>{orderMetrics.totalOrders}</Text>
+            <Text style={styles.metricLabel}>Total Orders</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <MaterialCommunityIcons name="target" size={24} color={iOSColors.status.bullish} />
+            <Text style={styles.metricValue}>{orderMetrics.accuracy90}</Text>
+            <Text style={styles.metricLabel}>90%+ Accuracy</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <MaterialCommunityIcons name="bullseye" size={24} color={iOSColors.button.warning} />
+            <Text style={styles.metricValue}>{orderMetrics.accuracy80}</Text>
+            <Text style={styles.metricLabel}>80%+ Accuracy</Text>
+          </View>
+
+          <View style={styles.metricCard}>
+            <MaterialCommunityIcons name="content-save" size={24} color={iOSColors.button.success} />
+            <Text style={styles.metricValue}>{orderMetrics.totalSaved}</Text>
+            <Text style={styles.metricLabel}>Saved Orders</Text>
           </View>
         </View>
-        <Button title="Fetch Data" onPress={fetchData} disabled={loading} />
-      </View>
 
-      <FlatList
-        data={[{ type: 'saved' }, { type: 'unsaved' }]}
-        keyExtractor={(item) => item.type}
-        renderItem={({ item }) => (
-          <View>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.headerText}>
-                {item.type === 'saved' ? 'Saved Predictions' : 'Unsaved Predictions'}
-              </Text>
-            </View>
-            <FlatList
-              data={item.type === 'saved' ? savedData : unsavedData}
-              renderItem={({ item: cardItem, index }) =>
-                renderCard({
-                  item: cardItem,
-                  index,
-                  dataList: item.type === 'saved' ? savedData : unsavedData,
-                  setDataList: item.type === 'saved' ? setSavedData : setUnsavedData,
-                  setSavedData: item.type === 'unsaved' ? setSavedData : null,
-                })
-              }
-              keyExtractor={(cardItem) => cardItem.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.cardList}
-              contentContainerStyle={{ minWidth: w('85%'), flexGrow: 1, minHeight: h('30%'), paddingHorizontal: w('2%') }}
-              ListEmptyComponent={<Text style={{ color: iOSColors.text.tertiary, textAlign: 'center', padding: w('5%'), fontSize: 16 }}>No {item.type === 'saved' ? 'saved' : 'unsaved'} predictions.</Text>}
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={fetchData}
+          disabled={loading}
+        >
+          <LinearGradient
+            colors={loading ? iOSColors.gradients.secondary : iOSColors.gradients.primary}
+            style={styles.refreshButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <MaterialCommunityIcons
+              name={loading ? "loading" : "refresh"}
+              size={20}
+              color={iOSColors.text.onPrimary}
             />
+            <Text style={styles.refreshButtonText}>
+              {loading ? "Loading..." : "Refresh Data"}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </LinearGradient>
+
+      <View style={styles.content}>
+        {[{ type: 'saved' }, { type: 'unsaved' }].map((section) => (
+          <View key={section.type} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons
+                name={section.type === 'saved' ? 'check-circle' : 'clock-outline'}
+                size={24}
+                color={section.type === 'saved' ? iOSColors.button.success : iOSColors.button.warning}
+              />
+              <Text style={styles.sectionTitle}>
+                {section.type === 'saved' ? 'Saved Predictions' : 'Pending Analysis'}
+              </Text>
+              <View style={[styles.sectionBadge, {
+                backgroundColor: section.type === 'saved' ? iOSColors.button.success : iOSColors.button.warning
+              }]}>
+                <Text style={styles.sectionBadgeText}>
+                  {(section.type === 'saved' ? savedData : unsavedData).length}
+                </Text>
+              </View>
+            </View>
+
+            {(section.type === 'saved' ? savedData : unsavedData).length > 0 ? (
+              <FlatList
+                data={section.type === 'saved' ? savedData : unsavedData}
+                renderItem={({ item: cardItem, index }) =>
+                  renderCard({
+                    item: cardItem,
+                    index,
+                    dataList: section.type === 'saved' ? savedData : unsavedData,
+                    setDataList: section.type === 'saved' ? setSavedData : setUnsavedData,
+                    setSavedData: section.type === 'unsaved' ? setSavedData : null,
+                  })
+                }
+                keyExtractor={(cardItem) => cardItem.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.cardList}
+                snapToInterval={width * 0.9}
+                decelerationRate="fast"
+              />
+            ) : (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name={section.type === 'saved' ? 'check-circle-outline' : 'clipboard-text-outline'}
+                  size={48}
+                  color={iOSColors.text.tertiary}
+                />
+                <Text style={styles.emptyStateText}>
+                  {section.type === 'saved'
+                    ? 'No saved predictions yet'
+                    : 'No predictions pending analysis'
+                  }
+                </Text>
+                <Text style={styles.emptyStateSubtext}>
+                  {section.type === 'saved'
+                    ? 'Complete analysis on pending predictions to see them here'
+                    : 'Your analyzed predictions will appear here'
+                  }
+                </Text>
+              </View>
+            )}
           </View>
-        )}
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 30 }}
-      />
-    </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-   container: {
-     flex: 1,
-     paddingHorizontal: w('3%'),
-     paddingTop: h('3%'),
-     paddingBottom: h('5%'),
-     backgroundColor: iOSColors.background.primary,
-     minHeight: '100%',
-   },
-   scrollContainer: {
-     height: h('8%'),
-   },
-   header: {
-     marginBottom: h('3%'),
-     padding: w('5%'),
-     backgroundColor: iOSColors.background.secondary,
-     borderRadius: 16,
-     minHeight: h('15%'),
-   },
-   headerText: {
-     fontSize: 24,
-     fontWeight: '700',
-     color: iOSColors.text.primary,
-     textAlign: 'center',
-     marginBottom: h('2%'),
-   },
-   metricContainer: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     flexWrap: 'wrap',
-     justifyContent: 'center',
-   },
-   metricText: {
-     fontSize: 14,
-     color: iOSColors.text.secondary,
-     marginHorizontal: w('2%'),
-     marginVertical: h('0.5%'),
-     fontWeight: '500',
-     backgroundColor: iOSColors.background.tertiary,
-     paddingHorizontal: w('3%'),
-     paddingVertical: h('1%'),
-     borderRadius: 8,
-   },
-   sectionHeader: {
-     marginBottom: h('2%'),
-     marginTop: h('3%'),
-   },
-   cardList: {
-     marginBottom: h('3%'),
-   },
-   card: {
-     width: w('85%'),
-     padding: w('5%'),
-     backgroundColor: iOSColors.background.secondary,
-     borderRadius: 16,
-     marginRight: w('4%'),
-     minHeight: h('35%'),
-     borderWidth: 1,
-     borderColor: iOSColors.border.light,
-   },
-  nameText: {
+  container: {
+    flex: 1,
+    backgroundColor: iOSColors.background.primary,
+  },
+  header: {
+    paddingHorizontal: w('5%'),
+    paddingTop: h('6%'),
+    paddingBottom: h('4%'),
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    marginBottom: h('2%'),
+  },
+  headerContent: {
+    alignItems: 'center',
+    marginBottom: h('3%'),
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: h('1%'),
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: iOSColors.text.primary,
+    marginLeft: w('3%'),
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: iOSColors.text.secondary,
+    textAlign: 'center',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: h('3%'),
+  },
+  metricCard: {
+    width: w('22%'),
+    backgroundColor: iOSColors.background.secondary,
+    borderRadius: 16,
+    padding: w('4%'),
+    alignItems: 'center',
+    marginBottom: h('2%'),
+    borderWidth: 1,
+    borderColor: iOSColors.border.light,
+  },
+  metricValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: iOSColors.text.primary,
+    marginTop: h('1%'),
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: iOSColors.text.secondary,
+    textAlign: 'center',
+    marginTop: h('0.5%'),
+  },
+  refreshButton: {
+    alignSelf: 'center',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  refreshButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: w('6%'),
+    paddingVertical: h('1.5%'),
+  },
+  refreshButtonText: {
+    color: iOSColors.text.onPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: w('2%'),
+  },
+  content: {
+    paddingHorizontal: w('5%'),
+    paddingBottom: h('5%'),
+  },
+  section: {
+    marginBottom: h('4%'),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: h('3%'),
+  },
+  sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
     color: iOSColors.text.primary,
-    marginBottom: h('1%'),
+    marginLeft: w('3%'),
+    flex: 1,
   },
-  priceText: {
-    fontSize: 16,
-    color: iOSColors.text.secondary,
-    fontWeight: '500',
-    marginBottom: h('0.5%'),
+  sectionBadge: {
+    paddingHorizontal: w('3%'),
+    paddingVertical: h('0.5%'),
+    borderRadius: 12,
   },
-  marketCapText: {
-    fontSize: 16,
-    color: iOSColors.text.secondary,
-    fontWeight: '500',
-    marginBottom: h('0.5%'),
-  },
-  indicatorsText: {
+  sectionBadgeText: {
+    color: iOSColors.text.onPrimary,
     fontSize: 14,
-    color: iOSColors.text.tertiary,
-    fontWeight: '400',
-    marginBottom: h('0.3%'),
-  },
-  trendText: {
-    fontSize: 14,
-    color: iOSColors.status.bullish,
-    fontWeight: '500',
-    marginBottom: h('0.5%'),
-  },
-  predictionText: {
-    fontSize: 16,
-    color: iOSColors.button.primary,
     fontWeight: '600',
-    marginBottom: h('0.5%'),
   },
-  predictionTimeText: {
+  cardList: {
+    paddingRight: w('5%'),
+  },
+  card: {
+    width: width * 0.85,
+    borderRadius: 20,
+    marginRight: w('4%'),
+    padding: w('5%'),
+    borderWidth: 1,
+    borderColor: iOSColors.border.light,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: h('2%'),
+  },
+  currencyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currencyName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginLeft: w('2%'),
+  },
+  statusBadge: {
+    paddingHorizontal: w('3%'),
+    paddingVertical: h('0.5%'),
+    borderRadius: 12,
+  },
+  statusText: {
+    color: iOSColors.text.onPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  cardContent: {
+    flex: 1,
+  },
+  priceSection: {
+    marginBottom: h('2%'),
+  },
+  priceLabel: {
     fontSize: 14,
     color: iOSColors.text.secondary,
-    fontWeight: '500',
-    marginBottom: h('0.3%'),
+    marginBottom: h('0.5%'),
   },
-  predictionDateText: {
-    fontSize: 14,
+  priceValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: iOSColors.button.primary,
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    marginBottom: h('2%'),
+  },
+  detailItem: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 12,
     color: iOSColors.text.tertiary,
-    fontWeight: '400',
+    marginBottom: h('0.5%'),
+  },
+  detailValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+  },
+  indicatorsSection: {
+    marginBottom: h('2%'),
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
     marginBottom: h('1%'),
+  },
+  indicatorsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  indicatorItem: {
+    alignItems: 'center',
+  },
+  indicatorLabel: {
+    fontSize: 12,
+    color: iOSColors.text.tertiary,
+    marginBottom: h('0.5%'),
+  },
+  indicatorValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: iOSColors.text.secondary,
+  },
+  predictionInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: h('2%'),
+  },
+  predictionDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  predictionTime: {
+    fontSize: 12,
+    color: iOSColors.text.tertiary,
+    marginLeft: w('1%'),
+  },
+  predictionDate: {
+    fontSize: 12,
+    color: iOSColors.text.tertiary,
+    marginLeft: w('1%'),
+  },
+  inputSection: {
+    marginBottom: h('2%'),
   },
   input: {
     height: h('6%'),
-    borderColor: iOSColors.border.light,
     borderWidth: 1,
+    borderColor: iOSColors.border.light,
     borderRadius: 12,
-    marginVertical: h('1%'),
-    paddingLeft: w('4%'),
-    backgroundColor: iOSColors.background.tertiary,
+    marginBottom: h('1%'),
+    paddingHorizontal: w('4%'),
+    backgroundColor: iOSColors.background.primary,
     color: iOSColors.text.primary,
     fontSize: 16,
   },
+  actionButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: h('1%'),
+  },
+  buttonGradient: {
+    paddingVertical: h('1.5%'),
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: iOSColors.text.onPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   accuracyContainer: {
-    marginTop: h('2%'),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: iOSColors.background.primary,
     padding: w('3%'),
-    backgroundColor: iOSColors.background.tertiary,
-    borderRadius: 8,
+    borderRadius: 12,
+    marginBottom: h('2%'),
   },
   accuracyText: {
     fontSize: 16,
-    color: iOSColors.status.bullish,
     fontWeight: '600',
-    textAlign: 'center',
+    marginLeft: w('2%'),
+  },
+  saveButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  saveButtonText: {
+    color: iOSColors.text.onPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: w('2%'),
+  },
+  savedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: iOSColors.background.primary,
+    padding: w('3%'),
+    borderRadius: 12,
   },
   savedText: {
-    fontSize: 16,
     color: iOSColors.button.success,
+    fontSize: 16,
     fontWeight: '600',
+    marginLeft: w('2%'),
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: h('8%'),
+    backgroundColor: iOSColors.background.secondary,
+    borderRadius: 16,
+    marginTop: h('2%'),
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginTop: h('2%'),
     textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: iOSColors.text.secondary,
     marginTop: h('1%'),
+    textAlign: 'center',
+    paddingHorizontal: w('10%'),
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: iOSColors.background.primary,
-    paddingVertical: h('10%'),
   },
   loadingText: {
     color: iOSColors.text.secondary,

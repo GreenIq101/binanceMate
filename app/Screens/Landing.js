@@ -1,40 +1,13 @@
 "use client"
 
 import { useRef, useEffect } from "react"
-import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Animated } from "react-native"
+import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Animated, Image } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
 import iOSColors from "../Commponents/Colors"
 
 const { width } = Dimensions.get("window")
 
-const features = [
-  {
-    title: "Smart Predictions",
-    description: "Get AI-powered predictions for various assets with detailed analytics and accuracy metrics.",
-    icon: "brain",
-  },
-  {
-    title: "Portfolio Tracking",
-    description: "Track your investments and performance in real-time with easy-to-read charts and summaries.",
-    icon: "wallet",
-  },
-  {
-    title: "Market Analysis",
-    description: "Analyze market trends using advanced indicators like SMA, EMA, and RSI.",
-    icon: "chart-line",
-  },
-  {
-    title: "Secure Authentication",
-    description: "Sign up and log in securely to access personalized features and save your predictions.",
-    icon: "shield-check",
-  },
-  {
-    title: "Saved Predictions",
-    description: "Review your saved predictions and analyze their accuracy over time.",
-    icon: "bookmark",
-  },
-]
 
 const Landing = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current
@@ -69,36 +42,22 @@ const Landing = ({ navigation }) => {
         >
           {/* Hero Section */}
           <View style={styles.heroSection}>
-            <View style={styles.iconContainer}>
-              <MaterialCommunityIcons name="bullseye-arrow" size={80} color={iOSColors.text.onPrimary} />
-            </View>
+            <Image source={require('../../assets/logo.png')} style={styles.logo} />
             <Text style={styles.title}>Master the Bull</Text>
             <Text style={styles.subtitle}>Your AI-powered crypto trading companion</Text>
           </View>
 
-          {/* Features Section */}
-          <View style={styles.featuresSection}>
-            {features.map((feature, idx) => (
-              <View key={idx} style={styles.featureCard}>
-                <View style={styles.featureIconContainer}>
-                  <MaterialCommunityIcons name={feature.icon} size={32} color={iOSColors.button.primary} />
-                </View>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.featureDesc}>{feature.description}</Text>
-              </View>
-            ))}
-          </View>
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
-            <Pressable style={styles.button} onPress={() => navigation.navigate("Login")}>
+            <Pressable style={styles.button} onPress={() => navigation.navigate("EnteryNav", { screen: "Login" })}>
               <LinearGradient colors={["#FFFFFF", "#F5F5F5"]} style={styles.buttonGradient}>
                 <Text style={styles.buttonText}>Login</Text>
                 <MaterialCommunityIcons name="arrow-right" size={20} color={iOSColors.button.primary} />
               </LinearGradient>
             </Pressable>
 
-            <Pressable style={styles.button} onPress={() => navigation.navigate("Signup")}>
+            <Pressable style={styles.button} onPress={() => navigation.navigate("EnteryNav", { screen: "Signup" })}>
               <LinearGradient colors={["#FFFFFF", "#F5F5F5"]} style={styles.buttonGradient}>
                 <Text style={styles.buttonText}>Sign Up</Text>
                 <MaterialCommunityIcons name="account-plus" size={20} color={iOSColors.button.primary} />
@@ -132,15 +91,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
   title: {
     fontSize: 36,
     fontWeight: "700",
@@ -154,35 +104,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "500",
   },
-  featuresSection: {
-    marginBottom: 32,
-  },
-  featureCard: {
-    backgroundColor: iOSColors.background.secondary,
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 16,
-    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-  },
-  featureIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(196, 30, 92, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  featureTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: iOSColors.text.primary,
-    marginBottom: 8,
-  },
-  featureDesc: {
-    fontSize: 15,
-    color: iOSColors.text.secondary,
-    lineHeight: 22,
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+    alignSelf: 'center',
   },
   buttonContainer: {
     gap: 16,

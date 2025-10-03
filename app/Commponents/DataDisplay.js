@@ -21,58 +21,64 @@ const DataDisplay = () => {
      totalUnsaved: 0,
    });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          setLoading(false);
-          return;
-        }
-
-        const q = query(collection(db, 'predictions'), where('userId', '==', user.uid));
-        const querySnapshot = await getDocs(q);
-        const savedList = [];
-        const unsavedList = [];
-        let accuracy90 = 0, accuracy80 = 0, accuracy60 = 0, accuracy50 = 0;
-
-        querySnapshot.docs.forEach((doc) => {
-          const dataItem = {
-            id: doc.id,
-            ...doc.data(),
-            resultTime: '',
-            price: doc.data().actualPrice || '',
-            accuracy: doc.data().accuracy || null,
-            saved: doc.data().saved || false,
-          };
-
-          if (dataItem.accuracy >= 90) accuracy90++;
-          else if (dataItem.accuracy >= 80) accuracy80++;
-          else if (dataItem.accuracy >= 60) accuracy60++;
-          else if (dataItem.accuracy >= 50) accuracy50++;
-
-          dataItem.saved ? savedList.push(dataItem) : unsavedList.push(dataItem);
-        });
-
-        setSavedData(savedList);
-        setUnsavedData(unsavedList);
-        setOrderMetrics({
-          totalOrders: savedList.length + unsavedList.length,
-          accuracy90,
-          accuracy80,
-          accuracy60,
-          accuracy50,
-          totalSaved: savedList.length,
-          totalUnsaved: unsavedList.length,
-        });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      console.log('Authentication status: User is', user ? `logged in (UID: ${user.uid})` : 'not logged in');
+      if (!user) {
         setLoading(false);
+        return;
       }
-    };
 
+      const q = query(collection(db, 'predictions'), where('userId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      console.log('Fetched querySnapshot:', querySnapshot.docs.length, 'documents');
+      const savedList = [];
+      const unsavedList = [];
+      let accuracy90 = 0, accuracy80 = 0, accuracy60 = 0, accuracy50 = 0;
+
+      querySnapshot.docs.forEach((doc) => {
+        const dataItem = {
+          id: doc.id,
+          ...doc.data(),
+          resultTime: '',
+          price: doc.data().actualPrice || '',
+          accuracy: doc.data().accuracy || null,
+          saved: doc.data().saved || false,
+        };
+        console.log('Processing dataItem:', dataItem);
+
+        if (dataItem.accuracy >= 90) accuracy90++;
+        else if (dataItem.accuracy >= 80) accuracy80++;
+        else if (dataItem.accuracy >= 60) accuracy60++;
+        else if (dataItem.accuracy >= 50) accuracy50++;
+
+        dataItem.saved ? savedList.push(dataItem) : unsavedList.push(dataItem);
+      });
+      console.log('Final savedList length:', savedList.length, 'items:', savedList);
+      console.log('Final unsavedList length:', unsavedList.length, 'items:', unsavedList);
+
+      setSavedData(savedList);
+      setUnsavedData(unsavedList);
+      setOrderMetrics({
+        totalOrders: savedList.length + unsavedList.length,
+        accuracy90,
+        accuracy80,
+        accuracy60,
+        accuracy50,
+        totalSaved: savedList.length,
+        totalUnsaved: unsavedList.length,
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      console.log('Error details:', error.message, error.stack);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -91,7 +97,7 @@ const DataDisplay = () => {
     }
   };
 
-  const saveResults = async (index, dataList, setDataList) => {
+  const saveResults = async (index, dataList, setDataList, setSavedData) => {
     const updatedData = [...dataList];
     const currentItem = updatedData[index];
 
@@ -106,7 +112,9 @@ const DataDisplay = () => {
         });
 
         currentItem.saved = true;
-        setDataList(updatedData);
+        // Move the item from unsaved to saved
+        setSavedData(prev => [...prev, currentItem]);
+        setDataList(prev => prev.filter(item => item.id !== currentItem.id));
       } catch (error) {
         console.error("Error saving results:", error);
       }
@@ -115,7 +123,7 @@ const DataDisplay = () => {
     }
   };
 
-  const renderCard = ({ item, index, dataList, setDataList }) => (
+  const renderCard = ({ item, index, dataList, setDataList, setSavedData }) => (
     <View style={styles.card}>
       <Text style={styles.nameText}>Currency: {item.name}</Text>
       <Text style={styles.priceText}>Price: {item.price}</Text>
@@ -160,7 +168,7 @@ const DataDisplay = () => {
       )}
 
       {!item.saved && (
-        <Button title="Save Results" onPress={() => saveResults(index, dataList, setDataList)} />
+        <Button title="Save Results" onPress={() => saveResults(index, dataList, setDataList, setSavedData)} />
       )}
 
       {item.saved && (
@@ -193,6 +201,7 @@ const DataDisplay = () => {
             <Text style={styles.metricText}>Unsaved Orders: {orderMetrics.totalUnsaved}</Text>
           </View>
         </View>
+        <Button title="Fetch Data" onPress={fetchData} disabled={loading} />
       </View>
 
       <FlatList
@@ -213,6 +222,7 @@ const DataDisplay = () => {
                   index,
                   dataList: item.type === 'saved' ? savedData : unsavedData,
                   setDataList: item.type === 'saved' ? setSavedData : setUnsavedData,
+                  setSavedData: item.type === 'unsaved' ? setSavedData : null,
                 })
               }
               keyExtractor={(cardItem) => cardItem.id}

@@ -41,7 +41,8 @@ const GoogleLoginButton = ({ style }) => {
       }
 
       if (result && result.user) {
-        // Navigation will be handled by the auth state listener in App.js
+        // Navigate to main app after successful login
+        navigation.navigate('Navigation');
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
@@ -67,7 +68,8 @@ const GoogleLoginButton = ({ style }) => {
       getRedirectResult(auth)
         .then((result) => {
           if (result && result.user) {
-            // Google redirect sign-in successful
+            // Google redirect sign-in successful, navigate to main app
+            navigation.navigate('Navigation');
           }
         })
         .catch((error) => {

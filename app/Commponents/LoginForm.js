@@ -88,7 +88,8 @@ const LoginForm = () => {
         setIsLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email.trim(), password);
-            // Navigation will be handled by App.js auth state change
+            // Navigate to main app after successful login
+            navigation.navigate('Navigation');
         } catch (error) {
             let errorMessage = 'Login failed. Please try again.';
             if (error.code === 'auth/user-not-found') {

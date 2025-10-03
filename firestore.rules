@@ -12,25 +12,17 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // User predictions - users can only access their own predictions
-    match /predictions/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
-      // Sub-collections under predictions
-      match /trades/{tradeId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /history/{historyId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-    }
 
     // Allow authenticated users to read and write their own prediction documents
     match /predictions/{document} {
-      allow read, write: if request.auth != null &&
-                         request.auth.uid == request.resource.data.userId &&
-                         isValidPrediction();
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null && request.auth.uid == request.resource.data.userId && isValidPrediction();
+    }
+
+    // User portfolio - users can only access their own portfolio documents
+    match /portfolio/{document} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
     // User portfolios - users can only access their own portfolio data
@@ -130,18 +122,16 @@ service cloud.firestore {
     
     // Enhanced rules with validation for specific collections
     match /predictions/{userId}/trades/{tradeId} {
-      allow read, write: if request.auth != null && 
-                         request.auth.uid == userId &&
-                         (resource == null || isValidPrediction());
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId && isValidPrediction();
     }
     
     match /portfolios/{userId}/holdings/{holdingId} {
-      allow read, write: if request.auth != null && 
-                         request.auth.uid == userId &&
-                         (resource == null || 
-                          (request.resource.data.keys().hasAll(['symbol', 'quantity', 'averagePrice']) &&
-                           request.resource.data.quantity is number &&
-                           request.resource.data.averagePrice is number));
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId &&
+                         (request.resource.data.keys().hasAll(['symbol', 'quantity', 'averagePrice']) &&
+                          request.resource.data.quantity is number &&
+                          request.resource.data.averagePrice is number);
     }
     
     // Deny all other access

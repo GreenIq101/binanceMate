@@ -24,7 +24,7 @@ export default function App() {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.type = 'text/css';
-            link.href = './web-styles.css';
+            link.href = './app/web-styles.css';
             document.head.appendChild(link);
 
             // Also add inline styles as fallback

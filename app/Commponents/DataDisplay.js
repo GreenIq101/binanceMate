@@ -146,7 +146,7 @@ const DataDisplay = () => {
         </View>
       </View>
 
-      <View style={styles.cardContent}>
+      <ScrollView style={styles.cardContent} showsVerticalScrollIndicator={false}>
         <View style={styles.priceSection}>
           <Text style={styles.priceLabel}>Current Price</Text>
           <Text style={styles.priceValue}>${item.price}</Text>
@@ -271,7 +271,7 @@ const DataDisplay = () => {
             <Text style={styles.savedText}>Results Saved</Text>
           </View>
         )}
-      </View>
+      </ScrollView>
     </LinearGradient>
   );
 
@@ -390,7 +390,7 @@ const DataDisplay = () => {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.cardList}
-                snapToInterval={width * 0.9}
+                snapToInterval={width * 0.69}
                 decelerationRate="fast"
               />
             ) : (
@@ -515,13 +515,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: iOSColors.text.primary,
-    marginLeft: w('3%'),
+    marginLeft: w('4%'),
     flex: 1,
   },
   sectionBadge: {
     paddingHorizontal: w('3%'),
     paddingVertical: h('0.5%'),
     borderRadius: 12,
+    marginLeft: w('2%'),
   },
   sectionBadgeText: {
     color: iOSColors.text.onPrimary,
@@ -532,10 +533,11 @@ const styles = StyleSheet.create({
     paddingRight: w('5%'),
   },
   card: {
-    width: width * 0.85,
-    borderRadius: 20,
+    width: width * 0.65,
+    height: h('50%'),
+    borderRadius: 16,
     marginRight: w('4%'),
-    padding: w('5%'),
+    padding: w('3%'),
     borderWidth: 1,
     borderColor: iOSColors.border.light,
     shadowColor: '#000',
@@ -548,7 +550,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: h('2%'),
+    marginBottom: h('3%'),
   },
   currencyContainer: {
     flexDirection: 'row',
@@ -558,7 +560,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: iOSColors.text.primary,
-    marginLeft: w('2%'),
+    marginLeft: w('3%'),
   },
   statusBadge: {
     paddingHorizontal: w('3%'),
@@ -572,9 +574,10 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
+    paddingBottom: h('2%'),
   },
   priceSection: {
-    marginBottom: h('2%'),
+    marginBottom: h('3%'),
   },
   priceLabel: {
     fontSize: 14,
@@ -588,7 +591,7 @@ const styles = StyleSheet.create({
   },
   detailsGrid: {
     flexDirection: 'row',
-    marginBottom: h('2%'),
+    marginBottom: h('3%'),
   },
   detailItem: {
     flex: 1,
@@ -604,7 +607,7 @@ const styles = StyleSheet.create({
     color: iOSColors.text.primary,
   },
   indicatorsSection: {
-    marginBottom: h('2%'),
+    marginBottom: h('3%'),
   },
   sectionTitle: {
     fontSize: 14,
@@ -618,6 +621,7 @@ const styles = StyleSheet.create({
   },
   indicatorItem: {
     alignItems: 'center',
+    marginHorizontal: w('1%'),
   },
   indicatorLabel: {
     fontSize: 12,
@@ -632,7 +636,7 @@ const styles = StyleSheet.create({
   predictionInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: h('2%'),
+    marginBottom: h('3%'),
   },
   predictionDetail: {
     flexDirection: 'row',
@@ -641,12 +645,12 @@ const styles = StyleSheet.create({
   predictionTime: {
     fontSize: 12,
     color: iOSColors.text.tertiary,
-    marginLeft: w('1%'),
+    marginLeft: w('2%'),
   },
   predictionDate: {
     fontSize: 12,
     color: iOSColors.text.tertiary,
-    marginLeft: w('1%'),
+    marginLeft: w('2%'),
   },
   inputSection: {
     marginBottom: h('2%'),
@@ -688,7 +692,7 @@ const styles = StyleSheet.create({
   accuracyText: {
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: w('2%'),
+    marginLeft: w('3%'),
   },
   saveButton: {
     borderRadius: 12,
@@ -712,7 +716,7 @@ const styles = StyleSheet.create({
     color: iOSColors.button.success,
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: w('2%'),
+    marginLeft: w('3%'),
   },
   emptyState: {
     alignItems: 'center',

@@ -17,6 +17,7 @@ import { widthPercentageToDP as w, heightPercentageToDP as h } from 'react-nativ
 import iOSColors from '../Commponents/Colors';
 import { auth, db } from '../Firebase/fireConfig';
 import { collection, addDoc, getDocs, doc, deleteDoc, query, where } from 'firebase/firestore';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
 
@@ -26,23 +27,76 @@ const Watchlist = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
+  const [popularCoins, setPopularCoins] = useState([]);
+  const [isLoadingCoins, setIsLoadingCoins] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
-  // Popular cryptocurrencies for search
-  const popularCoins = [
-    { symbol: 'BTC', name: 'Bitcoin', price: 45000, change24h: 2.5 },
-    { symbol: 'ETH', name: 'Ethereum', price: 2800, change24h: 1.8 },
-    { symbol: 'BNB', name: 'Binance Coin', price: 320, change24h: -0.5 },
-    { symbol: 'ADA', name: 'Cardano', price: 0.45, change24h: 3.2 },
-    { symbol: 'SOL', name: 'Solana', price: 95, change24h: 4.1 },
-    { symbol: 'DOT', name: 'Polkadot', price: 7.2, change24h: 1.9 },
-    { symbol: 'DOGE', name: 'Dogecoin', price: 0.085, change24h: -1.2 },
-    { symbol: 'AVAX', name: 'Avalanche', price: 35, change24h: 2.8 },
-    { symbol: 'LTC', name: 'Litecoin', price: 75, change24h: 0.9 },
-    { symbol: 'MATIC', name: 'Polygon', price: 0.85, change24h: 1.5 },
-  ];
+  const fetchPopularCoins = async () => {
+    try {
+      setIsLoadingCoins(true);
+      const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr');
+      const data = response.data;
+
+      // Get top 20 coins by volume that end with USDT
+      const topCoins = data
+        .filter(coin => coin.symbol.endsWith('USDT') && parseFloat(coin.quoteVolume) > 1000000)
+        .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+        .slice(0, 20)
+        .map(coin => ({
+          symbol: coin.symbol.replace('USDT', ''),
+          name: getCoinName(coin.symbol.replace('USDT', '')),
+          price: parseFloat(coin.lastPrice),
+          change24h: parseFloat(coin.priceChangePercent)
+        }));
+
+      setPopularCoins(topCoins);
+    } catch (error) {
+      console.error('Error fetching popular coins:', error);
+      // Fallback to static data
+      setPopularCoins([
+        { symbol: 'BTC', name: 'Bitcoin', price: 45000, change24h: 2.5 },
+        { symbol: 'ETH', name: 'Ethereum', price: 2800, change24h: 1.8 },
+        { symbol: 'BNB', name: 'Binance Coin', price: 320, change24h: -0.5 },
+        { symbol: 'ADA', name: 'Cardano', price: 0.45, change24h: 3.2 },
+        { symbol: 'SOL', name: 'Solana', price: 95, change24h: 4.1 },
+        { symbol: 'DOT', name: 'Polkadot', price: 7.2, change24h: 1.9 },
+        { symbol: 'DOGE', name: 'Dogecoin', price: 0.085, change24h: -1.2 },
+        { symbol: 'AVAX', name: 'Avalanche', price: 35, change24h: 2.8 },
+        { symbol: 'LTC', name: 'Litecoin', price: 75, change24h: 0.9 },
+        { symbol: 'MATIC', name: 'Polygon', price: 0.85, change24h: 1.5 },
+      ]);
+    } finally {
+      setIsLoadingCoins(false);
+    }
+  };
+
+  const getCoinName = (symbol) => {
+    const coinNames = {
+      BTC: 'Bitcoin',
+      ETH: 'Ethereum',
+      BNB: 'Binance Coin',
+      ADA: 'Cardano',
+      SOL: 'Solana',
+      DOT: 'Polkadot',
+      DOGE: 'Dogecoin',
+      AVAX: 'Avalanche',
+      LTC: 'Litecoin',
+      MATIC: 'Polygon',
+      XRP: 'Ripple',
+      LINK: 'Chainlink',
+      UNI: 'Uniswap',
+      ALGO: 'Algorand',
+      VET: 'VeChain',
+      ICP: 'Internet Computer',
+      FIL: 'Filecoin',
+      TRX: 'Tron',
+      ETC: 'Ethereum Classic',
+      XLM: 'Stellar'
+    };
+    return coinNames[symbol] || symbol;
+  };
 
   useEffect(() => {
     // Start entrance animation
@@ -59,6 +113,7 @@ const Watchlist = () => {
       }),
     ]).start();
 
+    fetchPopularCoins();
     loadWatchlist();
   }, []);
 
@@ -82,17 +137,63 @@ const Watchlist = () => {
       const q = query(collection(db, 'watchlist'), where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);
 
+      if (querySnapshot.empty) {
+        setWatchlist([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Get unique symbols for price fetching
+      const symbols = [...new Set(querySnapshot.docs.map(doc => doc.data().symbol))];
+
+      // Fetch real prices from Binance
+      let currentPrices = {};
+      try {
+        const response = await axios.get(
+          `https://api.binance.com/api/v3/ticker/price?symbols=[${symbols.map(s => `"${s}USDT"`).join(',')}]`
+        );
+        response.data.forEach(item => {
+          const symbol = item.symbol.replace('USDT', '');
+          currentPrices[symbol] = parseFloat(item.price) || 0;
+        });
+      } catch (error) {
+        console.error('Error fetching watchlist prices:', error);
+        // Fallback to popular coins data
+        popularCoins.forEach(coin => {
+          currentPrices[coin.symbol] = coin.price;
+        });
+      }
+
+      // Fetch 24h change data
+      let changeData = {};
+      try {
+        const changeResponse = await axios.get('https://api.binance.com/api/v3/ticker/24hr');
+        changeResponse.data.forEach(item => {
+          if (symbols.includes(item.symbol.replace('USDT', ''))) {
+            const symbol = item.symbol.replace('USDT', '');
+            changeData[symbol] = parseFloat(item.priceChangePercent) || 0;
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching change data:', error);
+        // Fallback to popular coins data
+        popularCoins.forEach(coin => {
+          changeData[coin.symbol] = coin.change24h;
+        });
+      }
+
       const watchlistData = [];
       for (const docSnap of querySnapshot.docs) {
         const item = { id: docSnap.id, ...docSnap.data() };
-        // Get current price data
-        const coinData = popularCoins.find(coin => coin.symbol === item.symbol);
-        if (coinData) {
-          watchlistData.push({
-            ...item,
-            ...coinData,
-          });
-        }
+        const currentPrice = currentPrices[item.symbol] || 0;
+        const change24h = changeData[item.symbol] || 0;
+
+        watchlistData.push({
+          ...item,
+          price: currentPrice,
+          change24h: change24h,
+          name: getCoinName(item.symbol)
+        });
       }
 
       setWatchlist(watchlistData);

@@ -80,6 +80,9 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             } else if (route.name === 'Analysis') {
               iconName = 'chart-bar';
               displayLabel = 'Analysis';
+            } else if (route.name === 'Calculator') {
+              iconName = 'calculator';
+              displayLabel = 'Calculator';
             } else if (route.name === 'Settings') {
               iconName = 'cog';
               displayLabel = 'Settings';
@@ -178,6 +181,13 @@ const Nav = () => {
         component={Analysis}
         options={{
           tabBarLabel: 'Analysis',
+        }}
+      />
+      <Tab.Screen
+        name="Calculator"
+        component={Calculator}
+        options={{
+          tabBarLabel: 'Calculator',
         }}
       />
       <Tab.Screen

@@ -58,14 +58,49 @@ const Home = () => {
       const q = query(collection(db, 'portfolio'), where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);
 
+      if (querySnapshot.empty) {
+        setPortfolioSummary({
+          totalValue: 0,
+          totalInvested: 0,
+          totalPnL: 0,
+          holdingsCount: 0
+        });
+        return;
+      }
+
+      // Get unique symbols for price fetching, clean them to ensure proper format
+      const symbols = [...new Set(querySnapshot.docs.map(doc => {
+        const symbol = doc.data().symbol;
+        // Remove USDT suffix if it exists to avoid double USDT
+        return symbol.replace(/USDT$/i, '');
+      }))];
+
+      // Fetch real prices from Binance
+      let currentPrices = {};
+      try {
+        const response = await axios.get(
+          `https://api.binance.com/api/v3/ticker/price?symbols=[${symbols.map(s => `"${s}USDT"`).join(',')}]`
+        );
+        response.data.forEach(item => {
+          const symbol = item.symbol.replace('USDT', '');
+          currentPrices[symbol] = parseFloat(item.price) || 0;
+        });
+      } catch (error) {
+        console.error('Error fetching prices for portfolio:', error);
+        // Fallback to mock prices if API fails
+        symbols.forEach(symbol => {
+          currentPrices[symbol] = getMockPrice(symbol);
+        });
+      }
+
       let totalVal = 0;
       let totalInv = 0;
       let holdings = 0;
 
       for (const docSnap of querySnapshot.docs) {
         const item = docSnap.data();
-        const mockPrice = getMockPrice(item.symbol);
-        const currentValue = item.amount * mockPrice;
+        const currentPrice = currentPrices[item.symbol] || getMockPrice(item.symbol);
+        const currentValue = item.amount * currentPrice;
         const investedValue = item.amount * item.avgPrice;
 
         totalVal += currentValue;
@@ -114,29 +149,42 @@ const Home = () => {
 
       setMarketData(majorCoins);
 
-      // Get top gainers and losers
+      // Get top gainers and losers - filter by reasonable volume and sort by price change
+      const volumeThreshold = 10000000; // 10M USD volume minimum for quality data
       const sortedByChange = data
-        .filter(coin => parseFloat(coin.quoteVolume) > 1000000) // Filter by volume
+        .filter(coin => parseFloat(coin.quoteVolume) > volumeThreshold && coin.symbol.endsWith('USDT'))
         .sort((a, b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent));
 
-      const gainers = sortedByChange.slice(0, 5).map(coin => ({
-        symbol: coin.symbol.replace('USDT', ''),
-        change: parseFloat(coin.priceChangePercent),
-        price: parseFloat(coin.lastPrice)
-      }));
+      const gainers = sortedByChange
+        .filter(coin => parseFloat(coin.priceChangePercent) > 0) // Only positive changes for gainers
+        .slice(0, 5)
+        .map(coin => ({
+          symbol: coin.symbol.replace('USDT', ''),
+          change: parseFloat(coin.priceChangePercent),
+          price: parseFloat(coin.lastPrice)
+        }));
 
-      const losers = sortedByChange.slice(-5).reverse().map(coin => ({
-        symbol: coin.symbol.replace('USDT', ''),
-        change: parseFloat(coin.priceChangePercent),
-        price: parseFloat(coin.lastPrice)
-      }));
+      const losers = sortedByChange
+        .filter(coin => parseFloat(coin.priceChangePercent) < 0) // Only negative changes for losers
+        .slice(-5)
+        .reverse() // Most negative first
+        .map(coin => ({
+          symbol: coin.symbol.replace('USDT', ''),
+          change: parseFloat(coin.priceChangePercent),
+          price: parseFloat(coin.lastPrice)
+        }));
 
       setTopGainers(gainers);
       setTopLosers(losers);
 
-      // Set trending coins (high volume + price movement)
+      // Set trending coins (high volume + significant price movement)
+      const trendingVolumeThreshold = 50000000; // 50M USD volume for trending
       const trending = data
-        .filter(coin => parseFloat(coin.quoteVolume) > 5000000)
+        .filter(coin =>
+          parseFloat(coin.quoteVolume) > trendingVolumeThreshold &&
+          coin.symbol.endsWith('USDT') &&
+          Math.abs(parseFloat(coin.priceChangePercent)) > 1 // At least 1% movement
+        )
         .sort((a, b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent)))
         .slice(0, 5)
         .map(coin => ({

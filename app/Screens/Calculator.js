@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,12 +8,15 @@ import {
   TextInput,
   Alert,
   Animated,
-  Dimensions
+  Dimensions,
+  FlatList,
+  Modal
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as w, heightPercentageToDP as h } from 'react-native-responsive-screen';
 import iOSColors from '../Commponents/Colors';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
 
@@ -25,11 +28,18 @@ const Calculator = () => {
   const [riskPercentage, setRiskPercentage] = useState('');
   const [stopLoss, setStopLoss] = useState('');
   const [results, setResults] = useState(null);
+  const [selectedCoin, setSelectedCoin] = useState('');
+  const [coinSearch, setCoinSearch] = useState('');
+  const [popularCoins, setPopularCoins] = useState([]);
+  const [filteredCoins, setFilteredCoins] = useState([]);
+  const [showCoinSelector, setShowCoinSelector] = useState(false);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+  const [showResultsModal, setShowResultsModal] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Start entrance animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -43,7 +53,85 @@ const Calculator = () => {
         useNativeDriver: true,
       }),
     ]).start();
+
+    fetchPopularCoins();
   }, []);
+
+  useEffect(() => {
+    if (coinSearch.length > 0) {
+      const filtered = popularCoins.filter(coin =>
+        coin.name.toLowerCase().includes(coinSearch.toLowerCase()) ||
+        coin.symbol.toLowerCase().includes(coinSearch.toLowerCase())
+      );
+      setFilteredCoins(filtered);
+    } else {
+      setFilteredCoins(popularCoins.slice(0, 10)); // Show top 10 by default
+    }
+  }, [coinSearch, popularCoins]);
+
+  const fetchPopularCoins = async () => {
+    try {
+      const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr');
+      const data = response.data;
+
+      // Get top coins by volume
+      const topCoins = data
+        .filter(coin => coin.symbol.endsWith('USDT') && parseFloat(coin.quoteVolume) > 5000000)
+        .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+        .slice(0, 50)
+        .map(coin => ({
+          symbol: coin.symbol.replace('USDT', ''),
+          name: getCoinName(coin.symbol.replace('USDT', '')),
+          price: parseFloat(coin.lastPrice),
+          change24h: parseFloat(coin.priceChangePercent)
+        }));
+
+      setPopularCoins(topCoins);
+      setFilteredCoins(topCoins.slice(0, 10));
+    } catch (error) {
+      console.error('Error fetching coins:', error);
+      // Fallback data
+      const fallbackCoins = [
+        { symbol: 'BTC', name: 'Bitcoin', price: 45000, change24h: 2.5 },
+        { symbol: 'ETH', name: 'Ethereum', price: 2800, change24h: 1.8 },
+        { symbol: 'BNB', name: 'Binance Coin', price: 320, change24h: -0.5 },
+        { symbol: 'ADA', name: 'Cardano', price: 0.45, change24h: 3.2 },
+        { symbol: 'SOL', name: 'Solana', price: 95, change24h: 4.1 },
+      ];
+      setPopularCoins(fallbackCoins);
+      setFilteredCoins(fallbackCoins);
+    }
+  };
+
+  const getCoinName = (symbol) => {
+    const coinNames = {
+      BTC: 'Bitcoin', ETH: 'Ethereum', BNB: 'Binance Coin', ADA: 'Cardano',
+      SOL: 'Solana', DOT: 'Polkadot', DOGE: 'Dogecoin', AVAX: 'Avalanche',
+      LTC: 'Litecoin', MATIC: 'Polygon', XRP: 'Ripple', LINK: 'Chainlink',
+      UNI: 'Uniswap', ALGO: 'Algorand', VET: 'VeChain', ICP: 'Internet Computer',
+      FIL: 'Filecoin', TRX: 'Tron', ETC: 'Ethereum Classic', XLM: 'Stellar'
+    };
+    return coinNames[symbol] || symbol;
+  };
+
+  const selectCoin = async (coin) => {
+    setSelectedCoin(coin.symbol);
+    setShowCoinSelector(false);
+    setCoinSearch('');
+    setIsLoadingPrice(true);
+
+    try {
+      // Fetch current price
+      const response = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${coin.symbol}USDT`);
+      const currentPrice = parseFloat(response.data.price);
+      setCurrentPrice(currentPrice.toString());
+    } catch (error) {
+      console.error('Error fetching price:', error);
+      Alert.alert('Error', 'Failed to fetch current price');
+    } finally {
+      setIsLoadingPrice(false);
+    }
+  };
 
   const calculateProfitLoss = () => {
     const invest = parseFloat(investment);
@@ -67,6 +155,7 @@ const Calculator = () => {
       percentage,
       type: profitLoss >= 0 ? 'profit' : 'loss'
     });
+    setShowResultsModal(true);
   };
 
   const calculatePositionSize = () => {
@@ -93,6 +182,7 @@ const Calculator = () => {
       maxLoss: riskAmount,
       type: 'position'
     });
+    setShowResultsModal(true);
   };
 
   const calculateBreakEven = () => {
@@ -114,6 +204,11 @@ const Calculator = () => {
       profitToBreakEven: fee,
       type: 'breakeven'
     });
+    setShowResultsModal(true);
+  };
+
+  const closeModal = () => {
+    setShowResultsModal(false);
   };
 
   const clearResults = () => {
@@ -124,6 +219,9 @@ const Calculator = () => {
     setPositionSize('');
     setRiskPercentage('');
     setStopLoss('');
+    setSelectedCoin('');
+    setCoinSearch('');
+    setShowCoinSelector(false);
   };
 
   const formatCurrency = (value) => {
@@ -240,6 +338,84 @@ const Calculator = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Coin Selector */}
+        <Animated.View
+          style={[
+            styles.coinSelectorSection,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={iOSColors.gradients.card}
+            style={styles.coinSelectorGradient}
+          >
+            <Text style={styles.coinSelectorTitle}>Select Trading Pair</Text>
+
+            <TouchableOpacity
+              onPress={() => setShowCoinSelector(!showCoinSelector)}
+              style={styles.coinSelectorButton}
+            >
+              <LinearGradient
+                colors={selectedCoin ? iOSColors.gradients.success : iOSColors.gradients.primary}
+                style={styles.coinSelectorButtonGradient}
+              >
+                <Text style={styles.coinSelectorButtonText}>
+                  {selectedCoin ? `${selectedCoin}/USDT` : 'Select Coin'}
+                </Text>
+                <MaterialCommunityIcons
+                  name={showCoinSelector ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color={iOSColors.text.primary}
+                />
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {showCoinSelector && (
+              <View style={styles.coinSearchContainer}>
+                <TextInput
+                  style={styles.coinSearchInput}
+                  placeholder="Search coins..."
+                  placeholderTextColor={iOSColors.text.tertiary}
+                  value={coinSearch}
+                  onChangeText={setCoinSearch}
+                  autoCapitalize="none"
+                />
+
+                <FlatList
+                  data={filteredCoins}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      onPress={() => selectCoin(item)}
+                      style={styles.coinOption}
+                    >
+                      <View style={styles.coinOptionContent}>
+                        <Text style={styles.coinOptionSymbol}>{item.symbol}</Text>
+                        <Text style={styles.coinOptionName}>{item.name}</Text>
+                      </View>
+                      <View style={styles.coinOptionPrice}>
+                        <Text style={styles.coinOptionPriceText}>${item.price.toFixed(4)}</Text>
+                        <Text style={[
+                          styles.coinOptionChange,
+                          { color: item.change24h >= 0 ? iOSColors.status.bullish : iOSColors.status.bearish }
+                        ]}>
+                          {item.change24h >= 0 ? '+' : ''}{item.change24h.toFixed(2)}%
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                  keyExtractor={(item) => item.symbol}
+                  showsVerticalScrollIndicator={false}
+                  style={styles.coinOptionsList}
+                  maxHeight={200}
+                />
+              </View>
+            )}
+          </LinearGradient>
+        </Animated.View>
+
         {/* Calculator Sections */}
         <View style={styles.calculatorContainer}>
 
@@ -273,14 +449,38 @@ const Calculator = () => {
 
               <View style={styles.inputRow}>
                 <Text style={styles.inputLabel}>Current Price ($)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="45000"
-                  placeholderTextColor={iOSColors.text.tertiary}
-                  value={currentPrice}
-                  onChangeText={setCurrentPrice}
-                  keyboardType="decimal-pad"
-                />
+                <View style={styles.priceInputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.priceInput]}
+                    placeholder="45000"
+                    placeholderTextColor={iOSColors.text.tertiary}
+                    value={currentPrice}
+                    onChangeText={setCurrentPrice}
+                    keyboardType="decimal-pad"
+                    editable={!isLoadingPrice}
+                  />
+                  {isLoadingPrice && (
+                    <View style={styles.priceLoading}>
+                      <MaterialCommunityIcons
+                        name="loading"
+                        size={20}
+                        color={iOSColors.button.primary}
+                      />
+                    </View>
+                  )}
+                  {selectedCoin && !isLoadingPrice && (
+                    <TouchableOpacity
+                      onPress={() => selectCoin({ symbol: selectedCoin, name: getCoinName(selectedCoin) })}
+                      style={styles.refreshPriceButton}
+                    >
+                      <MaterialCommunityIcons
+                        name="refresh"
+                        size={20}
+                        color={iOSColors.button.primary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
 
               <View style={styles.inputRow}>
@@ -419,30 +619,51 @@ const Calculator = () => {
               </TouchableOpacity>
             </LinearGradient>
           </Animated.View>
-
-          {/* Results */}
-          {results && (
-            <Animated.View
-              style={[
-                styles.resultsSection,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <LinearGradient
-                colors={iOSColors.gradients.card}
-                style={styles.resultsGradient}
-              >
-                {results.type === 'profit' || results.type === 'loss' ? renderProfitLossResults() :
-                 results.type === 'position' ? renderPositionSizeResults() :
-                 renderBreakEvenResults()}
-              </LinearGradient>
-            </Animated.View>
-          )}
         </View>
       </LinearGradient>
+
+      {/* Results Modal */}
+      <Modal
+        visible={showResultsModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <LinearGradient
+              colors={iOSColors.gradients.background}
+              style={styles.modalGradient}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Calculation Results</Text>
+                <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                  <MaterialCommunityIcons
+                    name="close"
+                    size={24}
+                    color={iOSColors.text.primary}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+                <LinearGradient
+                  colors={iOSColors.gradients.card}
+                  style={styles.modalResultsGradient}
+                >
+                  {results && (
+                    <>
+                      {results.type === 'profit' || results.type === 'loss' ? renderProfitLossResults() :
+                       results.type === 'position' ? renderPositionSizeResults() :
+                       renderBreakEvenResults()}
+                    </>
+                  )}
+                </LinearGradient>
+              </ScrollView>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -482,6 +703,90 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  coinSelectorSection: {
+    marginBottom: h('3%'),
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  coinSelectorGradient: {
+    padding: w('5%'),
+  },
+  coinSelectorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: h('2%'),
+    textAlign: 'center',
+  },
+  coinSelectorButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  coinSelectorButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: h('2%'),
+    paddingHorizontal: w('4%'),
+  },
+  coinSelectorButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+  },
+  coinSearchContainer: {
+    marginTop: h('2%'),
+  },
+  coinSearchInput: {
+    backgroundColor: iOSColors.background.tertiary,
+    borderRadius: 8,
+    padding: w('4%'),
+    fontSize: 16,
+    color: iOSColors.text.primary,
+    borderWidth: 1,
+    borderColor: iOSColors.border.light,
+    marginBottom: h('2%'),
+  },
+  coinOptionsList: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  coinOption: {
+    backgroundColor: iOSColors.background.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: iOSColors.border.light,
+    padding: w('4%'),
+  },
+  coinOptionContent: {
+    flex: 1,
+  },
+  coinOptionSymbol: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: 2,
+  },
+  coinOptionName: {
+    fontSize: 14,
+    color: iOSColors.text.secondary,
+  },
+  coinOptionPrice: {
+    alignItems: 'flex-end',
+  },
+  coinOptionPriceText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: iOSColors.text.primary,
+    marginBottom: 2,
+  },
+  coinOptionChange: {
+    fontSize: 12,
   },
   calculatorContainer: {
     paddingBottom: h('5%'),
@@ -523,6 +828,22 @@ const styles = StyleSheet.create({
     color: iOSColors.text.primary,
     borderWidth: 1,
     borderColor: iOSColors.border.light,
+  },
+  priceInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  priceInput: {
+    flex: 1,
+  },
+  priceLoading: {
+    position: 'absolute',
+    right: w('4%'),
+  },
+  refreshPriceButton: {
+    position: 'absolute',
+    right: w('4%'),
+    padding: 4,
   },
   calculateButton: {
     borderRadius: 12,
@@ -585,6 +906,52 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: iOSColors.text.primary,
     textAlign: 'right',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: w('90%'),
+    maxHeight: h('80%'),
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  modalGradient: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: w('5%'),
+    paddingTop: h('3%'),
+    paddingBottom: h('2%'),
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: iOSColors.text.primary,
+  },
+  closeButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: iOSColors.background.tertiary,
+  },
+  modalScrollView: {
+    paddingHorizontal: w('5%'),
+    paddingBottom: h('3%'),
+  },
+  modalResultsGradient: {
+    borderRadius: 16,
+    padding: w('5%'),
   },
 });
 

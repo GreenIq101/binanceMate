@@ -8,392 +8,7 @@ import { widthPercentageToDP as w, heightPercentageToDP as h } from "react-nativ
 import axios from "axios"
 import iOSColors from "../Commponents/Colors"
 
-const COIN_PAIRS = [
-  "ltcusdt",
-  "btcusdt",
-  "bomeusdt",
-  "memeusdt",
-  "pepeusdt",
-  "solusdt",
-  "dogeusdt",
-  "dogsusdt",
-  "bnbusdt",
-  "wusdt",
-  "linausdt",
-  "troyusdt",
-  "laziousdt",
-  "ogusdt",
-  "slfusdt",
-  "snxusdt",
-  "cakeusdt",
-  "wanusdt",
-  "zenusdt",
-  "nearusdt",
-  "farmusdt",
-  "idusdt",
-  "renusdt",
-  "renderusdt",
-  "trxusdt",
-  "ognusdt",
-  "dymusdt",
-  "ctxcusdt",
-  "movrusdt",
-  "ksmusdt",
-  "vthousdt",
-  "zrxusdt",
-  "pyrusdt",
-  "zrousdt",
-  "neirousdt",
-  "wrxusdt",
-  "vidtusdt",
-  "uftusdt",
-  "alphausdt",
-  "mantausdt",
-  "lumiausdt",
-  "sushiusdt",
-  "ntrnusdt",
-  "kncusdt",
-  "oaxusdt",
-  "nknusdt",
-  "astusdt",
-  "beamxusdt",
-  "gmtusdt",
-  "synusdt",
-  "compusdt",
-  "elfusdt",
-  "fisusdt",
-  "asrusdt",
-  "nexousdt",
-  "bntusdt",
-  "arusdt",
-  "darusdt",
-  "pixelusdt",
-  "tusdt",
-  "akrousdt",
-  "bifiusdt",
-  "ardrusdt",
-  "sandusdt",
-  "forthusdt",
-  "aeurusdt",
-  "gnsusdt",
-  "cfxusdt",
-  "1inchusdt",
-  "firousdt",
-  "grtusdt",
-  "rayusdt",
-  "crvusdt",
-  "ethusdt",
-  "1000satsusdt",
-  "quickusdt",
-  "barusdt",
-  "promusdt",
-  "kavausdt",
-  "imxusdt",
-  "aevousdt",
-  "zilusdt",
-  "roninusdt",
-  "tiausdt",
-  "sysusdt",
-  "ambusdt",
-  "aiusdt",
-  "bandusdt",
-  "gasusdt",
-  "fetusdt",
-  "combousdt",
-  "juvusdt",
-  "voxelusdt",
-  "requsdt",
-  "hookusdt",
-  "cvcusdt",
-  "umausdt",
-  "usdcusdt",
-  "fiousdt",
-  "rlcusdt",
-  "polusdt",
-  "scrtusdt",
-  "idexusdt",
-  "flokiusdt",
-  "litusdt",
-  "vibusdt",
-  "lsxusdt",
-  "galausdt",
-  "datausdt",
-  "tonusdt",
-  "aaveusdt",
-  "taousdt",
-  "ontusdt",
-  "wbtcusdt",
-  "xecusdt",
-  "chrusdt",
-  "scusdt",
-  "hifiusdt",
-  "dotusdt",
-  "celrusdt",
-  "audiousdt",
-  "rsrusdt",
-  "ghstusdt",
-  "bnxusdt",
-  "flowusdt",
-  "balusdt",
-  "lqtyusdt",
-  "auctionusdt",
-  "nmrusdt",
-  "hmstrusdt",
-  "etcusdt",
-  "axlusdt",
-  "radusdt",
-  "blzusdt",
-  "dodousdt",
-  "kp3rusdt",
-  "lokausdt",
-  "yggusdt",
-  "gmxusdt",
-  "xvgusdt",
-  "arbusdt",
-  "hardusdt",
-  "xiausdt",
-  "filusdt",
-  "nfpusdt",
-  "tkousdt",
-  "rareusdt",
-  "perpusdt",
-  "mblusdt",
-  "joeusdt",
-  "kmdusdt",
-  "chzusdt",
-  "unfiusdt",
-  "wifusdt",
-  "ltousdt",
-  "euriusdt",
-  "gusdt",
-  "santosusdt",
-  "fidausdt",
-  "injusdt",
-  "wingusdt",
-  "dgbusdt",
-  "bicousdt",
-  "seiusdt",
-  "oxtusdt",
-  "ckbusdt",
-  "bchusdt",
-  "arpausdt",
-  "eosusdt",
-  "roseusdt",
-  "iotxusdt",
-  "straxusdt",
-  "jasmyusdt",
-  "stxusdt",
-  "reiusdt",
-  "omusdt",
-  "aliceusdt",
-  "kdausdt",
-  "ongusdt",
-  "funusdt",
-  "trbusdt",
-  "jupusdt",
-  "metisusdt",
-  "viteusdt",
-  "tnsrusdt",
-  "pondusdt",
-  "flmusdt",
-  "sxpusdt",
-  "phbusdt",
-  "lduusdt",
-  "pendleusdt",
-  "diausdt",
-  "xvsusdt",
-  "aergousdt",
-  "twtusdt",
-  "rdntusdt",
-  "glmusdt",
-  "cyberusdt",
-  "1mbabydogeusdt",
-  "sfpusdt",
-  "ilvusdt",
-  "atmusdt",
-  "ctkusdt",
-  "iqusdt",
-  "thetausdt",
-  "avausdt",
-  "cittyusdt",
-  "bonkusdt",
-  "dexeusdt",
-  "fdustusdt",
-  "algousdt",
-  "paxgusdt",
-  "luncusdt",
-  "stgusdt",
-  "enausdt",
-  "badgerusdt",
-  "astrusdt",
-  "maskusdt",
-  "batusdt",
-  "storjusdt",
-  "neousdt",
-  "wldusdt",
-  "xlmusdt",
-  "dydxusdt",
-  "lrcusdt",
-  "rvnusdt",
-  "tusdusdt",
-  "turbousdt",
-  "dashusdt",
-  "bbusdt",
-  "adausdt",
-  "peopleusdt",
-  "usdpusdt",
-  "degousdt",
-  "vicusdt",
-  "sunusdt",
-  "fluxusdt",
-  "tlmusdt",
-  "mtlusdt",
-  "opusdt",
-  "arkmusdt",
-  "daiusdt",
-  "woousdt",
-  "chessusdt",
-  "achusdt",
-  "xrpusdt",
-  "lunausdt",
-  "dentusdt",
-  "keyusdt",
-  "hbarusdt",
-  "oneusdt",
-  "qkcusdt",
-  "enjusdt",
-  "altusdt",
-  "wbethusdt",
-  "ernusdt",
-  "suiusdt",
-  "steemusdt",
-  "rplusdt",
-  "pdausdt",
-  "omniusdt",
-  "lskusdt",
-  "minausdt",
-  "mkrusdt",
-  "vetusdt",
-  "pythusdt",
-  "leverusdt",
-  "mdtusdt",
-  "mboxusdt",
-  "zecusdt",
-  "fxsusdt",
-  "dfusdt",
-  "bnsolusdt",
-  "osmousdt",
-  "ookiusdt",
-  "glmrusdt",
-  "xnousdt",
-  "utkusdt",
-  "belusdt",
-  "dcrusdt",
-  "celousdt",
-  "ftmusdt",
-  "iotausdt",
-  "avaxusdt",
-  "eduusdt",
-  "axsusdt",
-  "sagausdt",
-  "zkusdt",
-  "sklusdt",
-  "cotiusdt",
-  "eigenusdt",
-  "xtzusdt",
-  "winusdt",
-  "hiveusdt",
-  "polyxusdt",
-  "qiusdt",
-  "icpusdt",
-  "iostusdt",
-  "vanryusdt",
-  "magicusdt",
-  "rifusdt",
-  "uniusdt",
-  "bakeusdt",
-  "runeusdt",
-  "qutusdt",
-  "creamusdt",
-  "mlnusdt",
-  "hftusdt",
-  "psgusdt",
-  "strkusdt",
-  "agldusdt",
-  "api3usdt",
-  "stptusdt",
-  "ctsiusdt",
-  "duskusdt",
-  "pundixusdt",
-  "phausdt",
-  "icxusdt",
-  "ankrusdt",
-  "ensusdt",
-  "bswusdt",
-  "listausdt",
-  "atomusdt",
-  "gftusdt",
-  "qtumusdt",
-  "lptusdt",
-  "egldusdt",
-  "jstusdt",
-  "cvxusdt",
-  "irisusdt",
-  "rezusdt",
-  "ethfiusdt",
-  "blurusdt",
-  "sntusdt",
-  "c98usdt",
-  "portousdt",
-  "scrusdt",
-  "ssvusdt",
-  "truusdt",
-  "jtousdt",
-  "atausdt",
-  "klayusdt",
-  "iousdt",
-  "acmusdt",
-  "tfuelusdt",
-  "pivxusdt",
-  "highusdt",
-  "portalusdt",
-  "mavusdt",
-  "gtcusdt",
-  "linkusdt",
-  "betausdt",
-  "clvusdt",
-  "waxpusdt",
-  "alpacausdt",
-  "ustcusdt",
-  "aceusdt",
-  "ordiusdt",
-  "shibusdt",
-  "catiusdt",
-  "bananausdt",
-  "bttcusdt",
-  "stmxusdt",
-  "apeusdt",
-  "idrtusdt",
-  "cosusdt",
-  "arkusdt",
-  "burgerusdt",
-  "alpineusdt",
-  "manausdt",
-  "acausdt",
-  "ampusdt",
-  "yfiusdt",
-  "nulsusdt",
-  "cityusdt",
-  "notusdt",
-  "aptusdt",
-  "slpusdt",
-  "gnousdt",
-  "hotusdt",
-  "prosusdt",
-  "alcxusdt",
-  "fttusdt",
-  "superusdt",
-].map((pair) => pair.toUpperCase()) // Normalize to uppercase for Binance API
+let COIN_PAIRS = [] // Will be populated dynamically
 
 const MarketEye = () => {
   const [marketData, setMarketData] = useState({})
@@ -404,13 +19,35 @@ const MarketEye = () => {
   const [selectedPairs, setSelectedPairs] = useState([])
   const [modalData, setModalData] = useState({})
   const [modalTimeframe, setModalTimeframe] = useState("1h")
+  const [coinPairs, setCoinPairs] = useState([])
+  const [topCoins, setTopCoins] = useState([])
+  const [scanningProgress, setScanningProgress] = useState(0)
 
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(50)).current
 
   const timeframes = ["5m", "15m", "30m", "1h", "4h", "1d"]
 
+  const fetchCoinPairs = async () => {
+    try {
+      const response = await axios.get('https://api.binance.com/api/v3/exchangeInfo')
+      const symbols = response.data.symbols
+        .filter(symbol => symbol.status === 'TRADING' && symbol.symbol.endsWith('USDT'))
+        .map(symbol => symbol.symbol.toUpperCase())
+      // Remove duplicates
+      const uniquePairs = [...new Set(symbols)]
+      setCoinPairs(uniquePairs)
+      COIN_PAIRS = uniquePairs
+    } catch (error) {
+      console.error('Error fetching coin pairs:', error)
+      // Fallback to some default pairs
+      setCoinPairs(['BTCUSDT', 'ETHUSDT', 'BNBUSDT'])
+      COIN_PAIRS = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT']
+    }
+  }
+
   useEffect(() => {
+    fetchCoinPairs()
     // Start entrance animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -522,6 +159,82 @@ const MarketEye = () => {
     setLoadingRows((prevState) => ({ ...prevState, [row]: false }))
   }
 
+  const analyzeCoinForGrowth = async (pair, timeframe) => {
+    try {
+      const resPrice = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${pair}`)
+      const price = Number.parseFloat(resPrice.data.price)
+      if (isNaN(price)) return null
+
+      const resHistorical = await axios.get(
+        `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${timeframe}&limit=200`,
+      )
+      const data = resHistorical.data.map((item) => ({
+        close: Number.parseFloat(item[4]),
+        volume: Number.parseFloat(item[5]),
+        high: Number.parseFloat(item[2]),
+        low: Number.parseFloat(item[3]),
+      }))
+
+      const closingPrices = data.map((item) => item.close)
+      const filteredPrices = removeOutliers(closingPrices)
+
+      if (filteredPrices.length < 50) return null // Need more data for analysis
+
+      const volumes = data.map((item) => item.volume)
+      const avgVolume = volumes.slice(-20).reduce((a, b) => a + b, 0) / 20
+      const currentVolume = volumes[volumes.length - 1]
+      const volumeSpike = currentVolume > avgVolume * 1.5
+
+      const rsi = calculateRSI(filteredPrices, 14)
+      const ema12 = calculateEMA(filteredPrices, 12)
+      const ema26 = calculateEMA(filteredPrices, 26)
+      const macdSignal = ema12 > ema26 // Simple MACD signal
+
+      const slope = linearRegressionPrediction(filteredPrices.slice(-10)) - filteredPrices[filteredPrices.length - 11] // Recent trend
+
+      // Calculate score
+      let score = 0
+      if (rsi < 30) score += 30 // Oversold
+      if (volumeSpike) score += 20 // Volume spike
+      if (macdSignal) score += 15 // Bullish MACD
+      if (slope > 0) score += 10 // Positive momentum
+      if (rsi < 50 && rsi > 30) score += 5 // Neutral to bullish
+
+      return {
+        pair,
+        price,
+        rsi,
+        volumeSpike,
+        score,
+        ema12,
+        ema26,
+        slope,
+      }
+    } catch (error) {
+      console.error(`Error analyzing ${pair}:`, error)
+      return null
+    }
+  }
+
+  const scanAllCoins = async () => {
+    setLoading(true)
+    setScanningProgress(0)
+    const results = []
+
+    for (let i = 0; i < coinPairs.length; i++) {
+      const analysis = await analyzeCoinForGrowth(coinPairs[i], selectedTimeframe)
+      if (analysis && analysis.score > 0) {
+        results.push(analysis)
+      }
+      setScanningProgress(((i + 1) / coinPairs.length) * 100)
+    }
+
+    // Sort by score descending and take top 5
+    const top5 = results.sort((a, b) => b.score - a.score).slice(0, 5)
+    setTopCoins(top5)
+    setLoading(false)
+  }
+
   const fetchModalData = async (pairs, timeframe) => {
     setLoading(true)
     const results = {}
@@ -597,10 +310,6 @@ const MarketEye = () => {
     setLoading(false)
   }
 
-  const groupedPairs = []
-  for (let i = 0; i < COIN_PAIRS.length; i += 3) {
-    groupedPairs.push(COIN_PAIRS.slice(i, i + 3))
-  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -644,99 +353,88 @@ const MarketEye = () => {
               </View>
             </View>
 
-            {/* Pairs Analysis */}
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={iOSColors.button.primary} />
-                <Text style={styles.loadingText}>Loading Market Data...</Text>
-              </View>
-            ) : (
-              <View style={styles.pairsContainer}>
-                {groupedPairs.map((rowPairs, rowIndex) => (
-                  <View key={rowIndex} style={styles.rowContainer}>
-                    <LinearGradient colors={iOSColors.gradients.card} style={styles.rowGradient}>
-                      <View style={styles.pairHeaders}>
-                        {rowPairs.map((pair, index) => (
-                          <View key={index} style={styles.pairHeader}>
-                            <Text style={styles.pairSymbol}>{pair}</Text>
-                          </View>
-                        ))}
+            {/* Scan Section */}
+            <View style={styles.scanSection}>
+              <Text style={styles.scanTitle}>Scan All Coins for Growth Opportunities</Text>
+              <Text style={styles.scanSubtitle}>Using advanced technical analysis to find top rising coins</Text>
+
+              <TouchableOpacity onPress={scanAllCoins} style={styles.scanButton} disabled={loading || coinPairs.length === 0}>
+                <LinearGradient colors={loading ? iOSColors.gradients.card : iOSColors.gradients.primary} style={styles.scanButtonGradient}>
+                  {loading ? (
+                    <View style={styles.loadingScan}>
+                      <ActivityIndicator size="small" color={iOSColors.button.primary} />
+                      <Text style={styles.scanButtonText}>Scanning... {Math.round(scanningProgress)}%</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="radar" size={24} color={iOSColors.text.primary} />
+                      <Text style={styles.scanButtonText}>Start Market Scan</Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {loading && (
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBar}>
+                    <Animated.View
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${scanningProgress}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.progressText}>{Math.round(scanningProgress)}% Complete</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Top Coins Display */}
+            {topCoins.length > 0 && (
+              <View style={styles.topCoinsContainer}>
+                <Text style={styles.topCoinsTitle}>Top 5 Rising Coins</Text>
+                {topCoins.map((coin, index) => (
+                  <View key={index} style={styles.topCoinCard}>
+                    <LinearGradient colors={iOSColors.gradients.card} style={styles.topCoinGradient}>
+                      <View style={styles.topCoinHeader}>
+                        <View style={styles.rankBadge}>
+                          <Text style={styles.rankText}>#{index + 1}</Text>
+                        </View>
+                        <Text style={styles.topCoinSymbol}>{coin.pair}</Text>
+                        <Text style={styles.topCoinPrice}>${coin.price.toFixed(6)}</Text>
                       </View>
 
-                      {/* Fetch Button */}
+                      <View style={styles.topCoinIndicators}>
+                        <View style={styles.indicatorRow}>
+                          <Text style={styles.indicatorLabel}>RSI:</Text>
+                          <Text style={[styles.indicatorValue, { color: coin.rsi < 30 ? iOSColors.status.bullish : iOSColors.text.primary }]}>
+                            {coin.rsi.toFixed(2)}
+                          </Text>
+                        </View>
+                        <View style={styles.indicatorRow}>
+                          <Text style={styles.indicatorLabel}>Volume Spike:</Text>
+                          <Text style={[styles.indicatorValue, { color: coin.volumeSpike ? iOSColors.status.bullish : iOSColors.text.secondary }]}>
+                            {coin.volumeSpike ? 'Yes' : 'No'}
+                          </Text>
+                        </View>
+                        <View style={styles.indicatorRow}>
+                          <Text style={styles.indicatorLabel}>Score:</Text>
+                          <Text style={styles.indicatorValue}>{coin.score}</Text>
+                        </View>
+                      </View>
+
                       <TouchableOpacity
                         onPress={() => {
-                          setSelectedPairs(rowPairs)
+                          setSelectedPairs([coin.pair])
                           setModalVisible(true)
-                          fetchModalData(rowPairs, modalTimeframe)
+                          fetchModalData([coin.pair], modalTimeframe)
                         }}
-                        style={styles.fetchButton}
-                        disabled={loading}
+                        style={styles.detailButton}
                       >
-                        <LinearGradient
-                          colors={loading ? iOSColors.gradients.card : iOSColors.gradients.primary}
-                          style={styles.fetchButtonGradient}
-                        >
-                          {loading ? (
-                            <ActivityIndicator size="small" color={iOSColors.button.primary} />
-                          ) : (
-                            <>
-                              <MaterialCommunityIcons name="chart-line" size={20} color={iOSColors.text.primary} />
-                              <Text style={styles.fetchButtonText}>Market Analysis</Text>
-                            </>
-                          )}
-                        </LinearGradient>
+                        <Text style={styles.detailButtonText}>View Details</Text>
                       </TouchableOpacity>
-
-                      {/* Results */}
-                      {marketData[rowIndex + 1] && (
-                        <View style={styles.resultsContainer}>
-                          {marketData[rowIndex + 1].map((item, idx) => (
-                            <View key={idx} style={styles.resultCard}>
-                              <LinearGradient colors={iOSColors.gradients.secondary} style={styles.resultGradient}>
-                                <View style={styles.resultHeader}>
-                                  <Text style={styles.resultSymbol}>{item.pair}</Text>
-                                  <Text style={styles.resultPrice}>${item.price}</Text>
-                                </View>
-
-                                <View style={styles.indicatorsContainer}>
-                                  <View style={styles.indicatorRow}>
-                                    <Text style={styles.indicatorLabel}>SMA:</Text>
-                                    <Text style={styles.indicatorValue}>{item.sma}</Text>
-                                  </View>
-                                  <View style={styles.indicatorRow}>
-                                    <Text style={styles.indicatorLabel}>EMA:</Text>
-                                    <Text style={styles.indicatorValue}>{item.ema}</Text>
-                                  </View>
-                                  <View style={styles.indicatorRow}>
-                                    <Text style={styles.indicatorLabel}>RSI:</Text>
-                                    <Text style={styles.indicatorValue}>{item.rsi}</Text>
-                                  </View>
-                                </View>
-
-                                <View style={styles.predictionContainer}>
-                                  <Text style={styles.predictionLabel}>Prediction:</Text>
-                                  <Text style={styles.predictionValue}>${item.predictedPrice}</Text>
-                                  <Text
-                                    style={[
-                                      styles.changeValue,
-                                      {
-                                        color:
-                                          item.percentageChange > 0
-                                            ? iOSColors.status.bullish
-                                            : iOSColors.status.bearish,
-                                      },
-                                    ]}
-                                  >
-                                    {item.percentageChange > 0 ? "+" : ""}
-                                    {item.percentageChange}%
-                                  </Text>
-                                </View>
-                              </LinearGradient>
-                            </View>
-                          ))}
-                        </View>
-                      )}
                     </LinearGradient>
                   </View>
                 ))}
@@ -1154,6 +852,137 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: iOSColors.border.light,
     paddingTop: h("2%"),
+  },
+  scanSection: {
+    alignItems: "center",
+    marginBottom: h("4%"),
+  },
+  scanTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: iOSColors.text.primary,
+    textAlign: "center",
+    marginBottom: h("1%"),
+  },
+  scanSubtitle: {
+    fontSize: 16,
+    color: iOSColors.text.secondary,
+    textAlign: "center",
+    marginBottom: h("3%"),
+  },
+  scanButton: {
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: iOSColors.button.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  scanButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: h("2%"),
+    paddingHorizontal: w("8%"),
+  },
+  loadingScan: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  scanButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: iOSColors.text.primary,
+    marginLeft: w("2%"),
+  },
+  progressContainer: {
+    marginTop: h("3%"),
+    alignItems: "center",
+  },
+  progressBar: {
+    width: w("80%"),
+    height: 8,
+    backgroundColor: iOSColors.background.tertiary,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: iOSColors.button.primary,
+    borderRadius: 4,
+  },
+  progressText: {
+    marginTop: h("1%"),
+    fontSize: 14,
+    color: iOSColors.text.secondary,
+  },
+  topCoinsContainer: {
+    flex: 1,
+  },
+  topCoinsTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: iOSColors.text.primary,
+    textAlign: "center",
+    marginBottom: h("2%"),
+  },
+  topCoinCard: {
+    marginBottom: h("2%"),
+  },
+  topCoinGradient: {
+    borderRadius: 16,
+    padding: w("5%"),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  topCoinHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: h("2%"),
+  },
+  rankBadge: {
+    backgroundColor: iOSColors.button.primary,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: w("3%"),
+  },
+  rankText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: iOSColors.text.primary,
+  },
+  topCoinSymbol: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: iOSColors.text.primary,
+    flex: 1,
+  },
+  topCoinPrice: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: iOSColors.button.primary,
+  },
+  topCoinIndicators: {
+    marginBottom: h("2%"),
+  },
+  detailButton: {
+    backgroundColor: iOSColors.button.primary,
+    borderRadius: 8,
+    paddingVertical: h("1%"),
+    paddingHorizontal: w("4%"),
+    alignSelf: "flex-start",
+  },
+  detailButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: iOSColors.text.primary,
   },
 })
 
